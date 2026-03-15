@@ -330,6 +330,7 @@ tr:last-child td{border-bottom:none}
 <div class="ov" id="m-ver"><div class="modal">
   <div class="mhd"></div>
   <div class="mth"><div class="mtx">Versement client</div><button class="mcl" onclick="cm('m-ver')">X</button></div>
+  <input type="hidden" id="vr-cid">
   <div class="fg" id="vr-c-wrap">
     <label class="fl">Client</label>
     <div id="vr-c-name" style="display:none;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;font-size:14px;font-weight:600;color:var(--tx)"></div>
@@ -345,6 +346,7 @@ tr:last-child td{border-bottom:none}
 <div class="ov" id="m-enl"><div class="modal">
   <div class="mhd"></div>
   <div class="mth"><div class="mtx">Enlevement + Facturation</div><button class="mcl" onclick="cm('m-enl')">X</button></div>
+  <input type="hidden" id="en-cid">
   <div class="fg" id="en-c-wrap">
     <label class="fl">Client</label>
     <div id="en-c-name" style="display:none;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;font-size:14px;font-weight:600;color:var(--tx)"></div>
@@ -448,12 +450,12 @@ function cm(id){
   document.getElementById(id).classList.remove('op');
   // Reset client selects to visible when closing modals
   if(id==='m-ver'){
-    var s=document.getElementById('vr-c');var n=document.getElementById('vr-c-name');
-    if(s)s.style.display='';if(n)n.style.display='none';
+    var s=document.getElementById('vr-c');var n=document.getElementById('vr-c-name');var h=document.getElementById('vr-cid');
+    if(s)s.style.display='';if(n)n.style.display='none';if(h)h.value='';
   }
   if(id==='m-enl'){
-    var s=document.getElementById('en-c');var n=document.getElementById('en-c-name');
-    if(s)s.style.display='';if(n)n.style.display='none';
+    var s=document.getElementById('en-c');var n=document.getElementById('en-c-name');var h=document.getElementById('en-cid');
+    if(s)s.style.display='';if(n)n.style.display='none';if(h)h.value='';
   }
 }
 document.querySelectorAll('.ov').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('op');});});
@@ -736,8 +738,8 @@ function svSort(){var q=parseInt(document.getElementById('s-q').value)||0;var f=
 function svDep(){var m=parseFloat(document.getElementById('dp-m').value)||0;if(!m){tst('Montant requis','w');return;}D.depenses.push({cat:document.getElementById('dp-c').value,montant:m,desc:document.getElementById('dp-x').value,date:document.getElementById('dp-d').value||td()});sv();cm('m-dep');['dp-m','dp-x'].forEach(function(id){document.getElementById(id).value='';});tst('Depense enregistree');rf();}
 function svVir(){var m=parseFloat(document.getElementById('vr-m').value)||0;if(!m){tst('Montant requis','w');return;}D.virements.push({montant:m,date:document.getElementById('vr-d').value||td(),note:document.getElementById('vr-n').value});sv();cm('m-vir');['vr-m','vr-n'].forEach(function(id){document.getElementById(id).value='';});tst('Virement enregistre');rf();}
 function svNcli(){var n=document.getElementById('nc-n').value.trim();if(!n){tst('Nom requis','w');return;}if(D.clients.find(function(c){return c.nom.toLowerCase()===n.toLowerCase();})){tst('Client existe deja','w');return;}var id='c_'+Date.now();D.clients.push({id:id,nom:n,tel:document.getElementById('nc-t').value.trim(),soldeInitial:parseFloat(document.getElementById('nc-s').value)||0,limiteCredit:parseFloat(document.getElementById('nc-l').value)||0,note:document.getElementById('nc-x').value.trim(),dateCreation:td()});sv();cm('m-ncli');['nc-n','nc-t','nc-x'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('nc-s').value='0';document.getElementById('nc-l').value='0';tst('Client ajoute');rf();}
-function svVer(){var cid=document.getElementById('vr-c').value;var m=parseFloat(document.getElementById('vr-mt').value)||0;if(!cid||!m){tst('Client et montant requis','w');return;}D.vers_cli.push({clientId:cid,montant:m,note:document.getElementById('vr-nt').value,date:document.getElementById('vr-dt').value||td()});sv();cm('m-ver');document.getElementById('vr-mt').value='';document.getElementById('vr-nt').value='';tst('Versement enregistre');rf();}
-function svEnl(){var cid=document.getElementById('en-c').value;var f=document.getElementById('en-f').value;var q=parseInt(document.getElementById('en-q').value)||0;var m=parseFloat(document.getElementById('en-m').value)||0;var dt=document.getElementById('en-d').value||td();if(!q){tst('Quantite requise','w');return;}if(!m){tst('Montant facture requis','w');return;}/* stock check removed — enlèvement autorisé même si stock bas */var cli=D.clients.find(function(c){return c.id===cid;});D.sorties.push({farine:f,qty:q,montant:m,clientId:cid,client:cli?cli.nom:'',date:dt,note:document.getElementById('en-n').value});sv();cm('m-enl');['en-q','en-m','en-n'].forEach(function(id){document.getElementById(id).value='';});tst('Enlevement enregistre');rf();}
+function svVer(){var hidCid=document.getElementById('vr-cid');var cid=(hidCid&&hidCid.value)?hidCid.value:document.getElementById('vr-c').value;var m=parseFloat(document.getElementById('vr-mt').value)||0;if(!cid||!m){tst('Client et montant requis','w');return;}D.vers_cli.push({clientId:cid,montant:m,note:document.getElementById('vr-nt').value,date:document.getElementById('vr-dt').value||td()});sv();cm('m-ver');document.getElementById('vr-mt').value='';document.getElementById('vr-nt').value='';tst('Versement enregistre');rf();}
+function svEnl(){var hidCid=document.getElementById('en-cid');var cid=(hidCid&&hidCid.value)?hidCid.value:document.getElementById('en-c').value;var f=document.getElementById('en-f').value;var q=parseInt(document.getElementById('en-q').value)||0;var m=parseFloat(document.getElementById('en-m').value)||0;var dt=document.getElementById('en-d').value||td();if(!q){tst('Quantite requise','w');return;}if(!m){tst('Montant facture requis','w');return;}/* stock check removed — enlèvement autorisé même si stock bas */var cli=D.clients.find(function(c){return c.id===cid;});D.sorties.push({farine:f,qty:q,montant:m,clientId:cid,client:cli?cli.nom:'',date:dt,note:document.getElementById('en-n').value});sv();cm('m-enl');['en-q','en-m','en-n'].forEach(function(id){document.getElementById(id).value='';});tst('Enlevement enregistre');rf();}
 
 // DELETE
 function delD(i){if(!confirm('Supprimer?'))return;D.depenses.splice(i,1);sv();rf();tst('Supprime');}
@@ -748,20 +750,21 @@ function delCli(cid){if(!confirm('Supprimer ce client et son historique?'))retur
 // MISC
 function updStk(){var f=document.getElementById('s-f').value;var el=document.getElementById('s-si');if(el)el.textContent='Stock disponible: '+gStk(f)+' sacs';}
 function updSeuil(k,v){D.seuils[k]=parseInt(v)||0;sv();}
-function updVerPrev(){var cid=document.getElementById('vr-c').value;var m=parseFloat(document.getElementById('vr-mt').value)||0;var sol=gSol(cid);var el=document.getElementById('vr-cur');var el2=document.getElementById('vr-pv');if(el)el.textContent='Solde actuel: '+fmtF(sol)+(sol>0?' (debiteur)':' (solde)');if(el2&&m>0){var a=sol-m;el2.textContent='Solde apres: '+fmtF(Math.abs(a))+(a>0?' — reste a payer':a<0?' — credit client':' — compte solde');el2.style.color=a<=0?'var(--ac3)':'var(--ac4)';}else if(el2){el2.textContent='';}}
-function updEnlSol(){var cid=document.getElementById('en-c').value;var sol=gSol(cid);var el=document.getElementById('en-sol');if(el)el.textContent='Solde actuel: '+fmtF(sol)+(sol>0?' (debiteur)':' (solde)');updEnlPrev();}
+function updVerPrev(){var hidCid=document.getElementById('vr-cid');var cid=(hidCid&&hidCid.value)?hidCid.value:document.getElementById('vr-c').value;var m=parseFloat(document.getElementById('vr-mt').value)||0;var sol=gSol(cid);var el=document.getElementById('vr-cur');var el2=document.getElementById('vr-pv');if(el)el.textContent='Solde actuel: '+fmtF(sol)+(sol>0?' (debiteur)':' (solde)');if(el2&&m>0){var a=sol-m;el2.textContent='Solde apres: '+fmtF(Math.abs(a))+(a>0?' — reste a payer':a<0?' — credit client':' — compte solde');el2.style.color=a<=0?'var(--ac3)':'var(--ac4)';}else if(el2){el2.textContent='';}}
+function updEnlSol(){var hidCid=document.getElementById('en-cid');var cid=(hidCid&&hidCid.value)?hidCid.value:document.getElementById('en-c').value;var sol=gSol(cid);var el=document.getElementById('en-sol');if(el)el.textContent='Solde actuel: '+fmtF(sol)+(sol>0?' (debiteur)':' (solde)');updEnlPrev();}
 function updEnlStk(){var f=document.getElementById('en-f').value;var el=document.getElementById('en-si');if(el)el.textContent='Stock disponible: '+gStk(f)+' sacs';}
-function updEnlPrev(){var cid=document.getElementById('en-c').value;var m=parseFloat(document.getElementById('en-m').value)||0;var sol=gSol(cid);var c=D.clients.find(function(x){return x.id===cid;});var lim=c?c.limiteCredit||0:0;var el=document.getElementById('en-pv');if(el&&m>0){var a=sol+m;var msg='Solde apres: '+fmtF(Math.abs(a))+(a>0?' — doit payer':a<0?' — credit':' — solde');if(lim>0&&a>lim)msg+=' (limite '+fmtF(lim)+' depassee)';el.textContent=msg;el.style.color=a>0?'var(--ac4)':'var(--ac3)';}else if(el){el.textContent='';}}
+function updEnlPrev(){var hidCid=document.getElementById('en-cid');var cid=(hidCid&&hidCid.value)?hidCid.value:document.getElementById('en-c').value;var m=parseFloat(document.getElementById('en-m').value)||0;var sol=gSol(cid);var c=D.clients.find(function(x){return x.id===cid;});var lim=c?c.limiteCredit||0:0;var el=document.getElementById('en-pv');if(el&&m>0){var a=sol+m;var msg='Solde apres: '+fmtF(Math.abs(a))+(a>0?' — doit payer':a<0?' — credit':' — solde');if(lim>0&&a>lim)msg+=' (limite '+fmtF(lim)+' depassee)';el.textContent=msg;el.style.color=a>0?'var(--ac4)':'var(--ac3)';}else if(el){el.textContent='';}}
 function omVer(cid){
   fillCliSel('vr-c',cid);
-  // Hide dropdown, show client name directly
   var sel=document.getElementById('vr-c');
   var nameDiv=document.getElementById('vr-c-name');
+  var hiddenCid=document.getElementById('vr-cid');
   var cli=D.clients.find(function(x){return x.id===cid;});
   if(cli&&nameDiv&&sel){
     nameDiv.textContent=cli.nom;
     nameDiv.style.display='block';
     sel.style.display='none';
+    if(hiddenCid)hiddenCid.value=cid;
   }
   updVerPrev();
   document.getElementById('vr-dt').value=td();
@@ -769,14 +772,15 @@ function omVer(cid){
 }
 function omEnl(cid){
   fillCliSel('en-c',cid);
-  // Hide dropdown, show client name directly
   var sel=document.getElementById('en-c');
   var nameDiv=document.getElementById('en-c-name');
+  var hiddenCid=document.getElementById('en-cid');
   var cli=D.clients.find(function(x){return x.id===cid;});
   if(cli&&nameDiv&&sel){
     nameDiv.textContent=cli.nom;
     nameDiv.style.display='block';
     sel.style.display='none';
+    if(hiddenCid)hiddenCid.value=cid;
   }
   updEnlSol();updEnlStk();
   document.getElementById('en-d').value=td();
