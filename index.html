@@ -109,8 +109,6 @@ tr:last-child td{border-bottom:none}
 .rapport-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px}
 .rapport-total{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-weight:700;font-size:13px;border-top:1px solid var(--border);margin-top:4px;color:var(--accent)}
 </style>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -122,10 +120,7 @@ tr:last-child td{border-bottom:none}
       <div class="logo-sub">Gestion Stock Farine</div>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:8px">
-    <div id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#81c784;box-shadow:0 0 6px #81c784" title="Synchronisé"></div>
-    <div class="header-date" id="headerDate"></div>
-  </div>
+  <div class="header-date" id="headerDate"></div>
 </div>
 
 <div class="scroll-area">
@@ -394,129 +389,6 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-
-<!-- NOUVEAU CLIENT -->
-<div class="modal-overlay" id="modal-nouveau-client">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title">👤 Nouveau client</div>
-      <button class="modal-close" onclick="closeModal('modal-nouveau-client')">✕</button>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Nom du client</label>
-      <input type="text" class="form-input" id="nc-nom" placeholder="Nom complet">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Téléphone (optionnel)</label>
-      <input type="tel" class="form-input" id="nc-tel" placeholder="ex: 77 000 00 00" inputmode="tel">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Solde initial (F CFA) — laisser 0 si nouveau client</label>
-      <input type="number" class="form-input" id="nc-solde" placeholder="0" inputmode="numeric" min="0" value="0">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Note (optionnel)</label>
-      <input type="text" class="form-input" id="nc-note" placeholder="Remarque...">
-    </div>
-    <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="saveNouveauClient()">✓ Enregistrer</button>
-  </div>
-</div>
-
-<!-- VERSEMENT CLIENT -->
-<div class="modal-overlay" id="modal-versement">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title">💰 Versement client</div>
-      <button class="modal-close" onclick="closeModal('modal-versement')">✕</button>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Client</label>
-      <select class="form-select" id="ver-client" onchange="updateSoldePreview()"></select>
-    </div>
-    <div id="ver-solde-actuel" style="font-size:12px;padding:7px 10px;background:rgba(245,166,35,0.08);border-radius:6px;margin-bottom:12px;color:var(--accent)"></div>
-    <div class="grid2">
-      <div class="form-group">
-        <label class="form-label">Montant versé (F CFA)</label>
-        <input type="number" class="form-input" id="ver-montant" min="0" placeholder="50000" inputmode="numeric" onchange="updateSoldePreview()">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Date</label>
-        <input type="date" class="form-input" id="ver-date">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Note (optionnel)</label>
-      <input type="text" class="form-input" id="ver-note" placeholder="ex: Versement partiel...">
-    </div>
-    <div id="ver-solde-apres" style="font-size:13px;font-weight:600;padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:12px;text-align:center"></div>
-    <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="saveVersementClient()">✓ Enregistrer</button>
-  </div>
-</div>
-
-<!-- FICHE CLIENT DETAIL -->
-<div class="modal-overlay" id="modal-fiche-client">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title" id="fiche-client-title">Fiche Client</div>
-      <button class="modal-close" onclick="closeModal('modal-fiche-client')">✕</button>
-    </div>
-    <div id="fiche-client-body"></div>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn btn-success" style="flex:1" onclick="printFicheClient()">🖨️ Imprimer</button>
-      <button class="btn btn-danger btn-sm" id="btn-suppr-client" onclick="">🗑️ Supprimer</button>
-    </div>
-  </div>
-</div>
-
-<!-- ENLÈVEMENT AVEC MONTANT -->
-<div class="modal-overlay" id="modal-sortie-montant">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title">📤 Sortie + Facturation</div>
-      <button class="modal-close" onclick="closeModal('modal-sortie-montant')">✕</button>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Client</label>
-      <select class="form-select" id="sm-client" onchange="updateSmSolde()"></select>
-    </div>
-    <div id="sm-solde-actuel" style="font-size:12px;padding:7px 10px;background:rgba(245,166,35,0.08);border-radius:6px;margin-bottom:10px;color:var(--accent)"></div>
-    <div class="form-group">
-      <label class="form-label">Type de farine</label>
-      <select class="form-select" id="sm-farine" onchange="updateSmStock()">
-        <option value="FIRST CHOICE">FARINE FIRST CHOICE</option>
-        <option value="TERANGA">FARINE TERANGA</option>
-        <option value="PATISSIERE">FARINE PÂTISSIÈRE</option>
-        <option value="BEIGNET">FARINE BEIGNET</option>
-      </select>
-    </div>
-    <div id="sm-stock-info" style="font-size:11px;color:var(--accent);margin-bottom:10px;padding:5px 10px;background:rgba(245,166,35,0.06);border-radius:6px"></div>
-    <div class="grid2">
-      <div class="form-group">
-        <label class="form-label">Nombre de sacs</label>
-        <input type="number" class="form-input" id="sm-qty" min="1" placeholder="10" inputmode="numeric">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Montant facturé (F CFA)</label>
-        <input type="number" class="form-input" id="sm-montant" min="0" placeholder="170000" inputmode="numeric" onchange="updateSmPreview()">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Date</label>
-      <input type="date" class="form-input" id="sm-date">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Note (optionnel)</label>
-      <input type="text" class="form-input" id="sm-note" placeholder="Remarque...">
-    </div>
-    <div id="sm-solde-apres" style="font-size:13px;font-weight:600;padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:12px;text-align:center"></div>
-    <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="saveSmSortie()">✓ Enregistrer</button>
-  </div>
-</div>
-
 <!-- RAPPORT MODAL -->
 <div class="modal-overlay" id="rapport-modal">
   <div class="modal" id="rapport-content-wrap">
@@ -541,65 +413,15 @@ const ALL_CATS=['CHARGEMENT','DECHARGEMENT','TRANSPORT','MAIRIE','WOYOFAL','GARD
 const CAT_ICONS={CHARGEMENT:'🏗️',DECHARGEMENT:'📥',TRANSPORT:'🚛',MAIRIE:'🏛️',WOYOFAL:'💡',GARDIENNAGE:'🔐',NETTOYAGE:'🧹',REPAS:'🍽️',ELECTRICITE:'⚡',AUTRE:'📌'};
 const CAT_COLORS={CHARGEMENT:'var(--accent2)',DECHARGEMENT:'var(--fp)',TRANSPORT:'var(--fc)',MAIRIE:'#a5d6a7',WOYOFAL:'#ffcc80',GARDIENNAGE:'#80cbc4',NETTOYAGE:'#b39ddb',REPAS:'#f48fb1',ELECTRICITE:'#ffe082',AUTRE:'var(--fb)'};
 
-// ===== FIREBASE CONFIG =====
-const firebaseConfig = {
-  databaseURL: 'https://depotges-42795-default-rtdb.firebaseio.com'
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const REF = db.ref('depot_dakar3');
-
-let data = {
+let data=JSON.parse(localStorage.getItem('depot_farine_v5')||JSON.stringify({
   appros:[],sorties:[],depenses:[],virements:[],
-  seuils:{'FIRST CHOICE':20,'TERANGA':20,'PATISSIERE':20,'BEIGNET':20}
-};
-
-let _saving = false;
-
-function save(){
-  _saving = true;
-  const dot = document.getElementById('sync-dot');
-  if(dot){ dot.style.background='#f5a623'; dot.style.boxShadow='0 0 6px #f5a623'; }
-  REF.set(data).then(()=>{
-    _saving = false;
-    const dot2 = document.getElementById('sync-dot');
-    if(dot2){ dot2.style.background='#81c784'; dot2.style.boxShadow='0 0 6px #81c784'; }
-  }).catch(e=>{
-    console.error('Firebase save error:', e);
-    // Fallback to localStorage
-    localStorage.setItem('depot_farine_backup', JSON.stringify(data));
-    _saving = false;
-  });
-  // Also keep local backup
-  localStorage.setItem('depot_farine_backup', JSON.stringify(data));
-}
-
-// Listen for real-time changes from other devices
-REF.on('value', (snapshot) => {
-  if(_saving) return;
-  const val = snapshot.val();
-  if(val){
-    data = val;
-    if(!data.virements) data.virements=[];
-    if(!data.seuils) data.seuils={'FIRST CHOICE':20,'TERANGA':20,'PATISSIERE':20,'BEIGNET':20};
-  }
-  // Hide loading overlay
-  document.getElementById('sync-overlay').style.display='none';
-  refresh();
-}, (error) => {
-  console.error('Firebase read error:', error);
-  // Load from local backup if Firebase fails
-  const backup = localStorage.getItem('depot_farine_backup');
-  if(backup){ data = JSON.parse(backup); if(!data.virements) data.virements=[]; }
-  document.getElementById('sync-status').textContent = 'Mode hors-ligne';
-  document.getElementById('sync-bar').style.width = '100%';
-  setTimeout(()=>{ document.getElementById('sync-overlay').style.display='none'; refresh(); }, 1500);
-});
-
-// Show loading progress
-setTimeout(()=>{ const b=document.getElementById('sync-bar'); if(b) b.style.width='60%'; }, 300);
-setTimeout(()=>{ const b=document.getElementById('sync-bar'); if(b) b.style.width='85%'; }, 800);
-
+  seuils:{'FIRST CHOICE':20,'TERANGA':20,'PATISSIERE':20,'BEIGNET':20},
+  clients:[],versements_clients:[]
+}));
+if(!data.virements) data.virements=[];
+if(!data.clients||data.clients.length===0){data.clients=[{id:"c_1000",nom:"BAY BABOU",tel:"",soldeInitial:3309500,limiteCredit:4700000,note:"",dateCreation:"2025-03-15"},{id:"c_1001",nom:"ABDOU AHAD DIBA",tel:"",soldeInitial:1518300,limiteCredit:1520000,note:"",dateCreation:"2025-03-15"},{id:"c_1002",nom:"OMAR GAYE",tel:"",soldeInitial:2336400,limiteCredit:2355000,note:"",dateCreation:"2025-03-15"},{id:"c_1003",nom:"DIAKHOUMPA",tel:"",soldeInitial:0,limiteCredit:0,note:"",dateCreation:"2025-03-15"},{id:"c_1004",nom:"KHADIM CISSE",tel:"",soldeInitial:0,limiteCredit:760000,note:"",dateCreation:"2025-03-15"},{id:"c_1005",nom:"BABACAR DIENE",tel:"",soldeInitial:9120000,limiteCredit:9120000,note:"",dateCreation:"2025-03-15"},{id:"c_1006",nom:"DAOUDA DIOP",tel:"",soldeInitial:5837000,limiteCredit:15000000,note:"",dateCreation:"2025-03-15"},{id:"c_1007",nom:"ELIMANE FAYE",tel:"",soldeInitial:3800000,limiteCredit:3800000,note:"",dateCreation:"2025-03-15"},{id:"c_1008",nom:"FATOU T DIOP",tel:"",soldeInitial:0,limiteCredit:1520000,note:"",dateCreation:"2025-03-15"},{id:"c_1009",nom:"IBRAHIMA CISSE",tel:"",soldeInitial:15000000,limiteCredit:15000000,note:"",dateCreation:"2025-03-15"},{id:"c_1010",nom:"IBRAHIMA NDIAYE",tel:"",soldeInitial:9138000,limiteCredit:10000000,note:"",dateCreation:"2025-03-15"},{id:"c_1011",nom:"MAMADOU NGOM",tel:"",soldeInitial:9907500,limiteCredit:10000000,note:"",dateCreation:"2025-03-15"},{id:"c_1012",nom:"SERIGNE DIAKHATE",tel:"",soldeInitial:3040000,limiteCredit:3040000,note:"",dateCreation:"2025-03-15"},{id:"c_1013",nom:"AMADOU BA DRAME",tel:"",soldeInitial:0,limiteCredit:1520000,note:"",dateCreation:"2025-03-15"},{id:"c_1014",nom:"BARA DIOP",tel:"",soldeInitial:-1200,limiteCredit:0,note:"",dateCreation:"2025-03-15"},{id:"c_1015",nom:"BOULANGERIE YOUSSEF",tel:"",soldeInitial:0,limiteCredit:0,note:"",dateCreation:"2025-03-15"},{id:"c_1016",nom:"ALPHOUSSEYNI MANGA",tel:"",soldeInitial:0,limiteCredit:0,note:"",dateCreation:"2025-03-15"},{id:"c_1017",nom:"FALLOU BA",tel:"",soldeInitial:0,limiteCredit:0,note:"",dateCreation:"2025-03-15"},{id:"c_1018",nom:"OUSMANE GUISSE",tel:"",soldeInitial:0,limiteCredit:0,note:"",dateCreation:"2025-03-15"},{id:"c_1019",nom:"MAMADOU DIARRA",tel:"",soldeInitial:0,limiteCredit:0,note:"",dateCreation:"2025-03-15"},{id:"c_1020",nom:"KHADIJATOU DIALLO",tel:"",soldeInitial:0,limiteCredit:0,note:"",dateCreation:"2025-03-15"},{id:"c_1021",nom:"MOUCTAR LY",tel:"",soldeInitial:0,limiteCredit:0,note:"",dateCreation:"2025-03-15"},{id:"c_1022",nom:"MAOULOUD MAIGA",tel:"",soldeInitial:0,limiteCredit:0,note:"",dateCreation:"2025-03-15"}];}
+if(!data.versements_clients) data.versements_clients=[];
+function save(){localStorage.setItem('depot_farine_v5',JSON.stringify(data))}
 
 function getStock(k){
   return data.appros.filter(a=>a.farine===k).reduce((s,a)=>s+a.qty,0)
@@ -909,14 +731,57 @@ function printRapport(){
   const body=document.getElementById('rapport-body').innerHTML;
   const w=window.open('','_blank');
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+title+'</title>'+'<style>'+'body{font-family:Arial,sans-serif;padding:24px;color:#111;font-size:13px;max-width:600px;margin:0 auto}'+'h1{font-size:18px;margin-bottom:20px;padding-bottom:8px;border-bottom:2px solid #111}'+'</style></head><body>'+'<h1>'+title+'</h1>'+'<div style="font-size:11px;color:#888;margin-bottom:16px">Genere le '+new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+'</div>'+body+'
-<div id="sync-overlay" style="position:fixed;inset:0;background:#0f1117;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
-  <div style="font-size:40px">🌾</div>
-  <div style="font-size:14px;color:#f5a623;font-weight:600">Dépôt DAKAR 3</div>
-  <div style="font-size:12px;color:#8b92b8" id="sync-status">Connexion en cours...</div>
-  <div style="width:120px;height:3px;background:#1e2334;border-radius:3px;overflow:hidden">
-    <div id="sync-bar" style="height:100%;width:0%;background:#f5a623;border-radius:3px;transition:width 0.5s"></div>
+<div class="modal-overlay" id="modal-new-client"><div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">👤 Nouveau client</div><button class="modal-close" onclick="closeModal('modal-new-client')">✕</button></div>
+  <div class="form-group"><label class="form-label">Nom</label><input type="text" class="form-input" id="nc-nom" placeholder="Nom complet"></div>
+  <div class="form-group"><label class="form-label">Téléphone</label><input type="tel" class="form-input" id="nc-tel" placeholder="77 000 00 00"></div>
+  <div class="form-group"><label class="form-label">Solde initial (F CFA)</label><input type="number" class="form-input" id="nc-solde" value="0" inputmode="numeric"></div>
+  <div class="form-group"><label class="form-label">Limite de crédit (F CFA)</label><input type="number" class="form-input" id="nc-limite" value="0" inputmode="numeric"></div>
+  <button class="btn btn-primary" style="width:100%" onclick="saveNewClient()">Enregistrer</button>
+</div></div>
+
+<div class="modal-overlay" id="modal-versement-client"><div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">💰 Versement</div><button class="modal-close" onclick="closeModal('modal-versement-client')">✕</button></div>
+  <div class="form-group"><label class="form-label">Client</label><select class="form-select" id="vc-client" onchange="previewVer()"></select></div>
+  <div id="vc-solde-now" style="font-size:12px;padding:7px 10px;background:rgba(245,166,35,0.08);border-radius:6px;margin-bottom:10px"></div>
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Montant (F CFA)</label><input type="number" class="form-input" id="vc-montant" min="0" placeholder="50000" inputmode="numeric" onchange="previewVer()"></div>
+    <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="vc-date"></div>
   </div>
-</div>
+  <div class="form-group"><label class="form-label">Note</label><input type="text" class="form-input" id="vc-note" placeholder="Versement partiel..."></div>
+  <div id="vc-preview" style="text-align:center;padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:10px;font-weight:600;font-size:13px"></div>
+  <button class="btn btn-primary" style="width:100%" onclick="saveVer()">Enregistrer</button>
+</div></div>
+
+<div class="modal-overlay" id="modal-enlev-client"><div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">📤 Enlèvement</div><button class="modal-close" onclick="closeModal('modal-enlev-client')">✕</button></div>
+  <div class="form-group"><label class="form-label">Client</label><select class="form-select" id="ec-client" onchange="previewEnl()"></select></div>
+  <div id="ec-solde-now" style="font-size:12px;padding:7px 10px;background:rgba(245,166,35,0.08);border-radius:6px;margin-bottom:10px"></div>
+  <div class="form-group"><label class="form-label">Type de farine</label>
+    <select class="form-select" id="ec-farine" onchange="updateEcStock()">
+      <option value="FIRST CHOICE">FARINE FIRST CHOICE</option><option value="TERANGA">FARINE TERANGA</option>
+      <option value="PATISSIERE">FARINE PATISSIERE</option><option value="BEIGNET">FARINE BEIGNET</option>
+    </select></div>
+  <div id="ec-stock-info" style="font-size:11px;color:var(--accent);margin-bottom:8px;padding:5px 10px;background:rgba(245,166,35,0.06);border-radius:6px"></div>
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Nombre de sacs</label><input type="number" class="form-input" id="ec-qty" min="1" placeholder="10" inputmode="numeric"></div>
+    <div class="form-group"><label class="form-label">Montant (F CFA)</label><input type="number" class="form-input" id="ec-montant" min="0" placeholder="170000" inputmode="numeric" onchange="previewEnl()"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="ec-date"></div>
+  <div class="form-group"><label class="form-label">Note</label><input type="text" class="form-input" id="ec-note" placeholder="Remarque..."></div>
+  <div id="ec-preview" style="text-align:center;padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:10px;font-weight:600;font-size:13px"></div>
+  <button class="btn btn-primary" style="width:100%" onclick="saveEnl()">Enregistrer</button>
+</div></div>
+
+<div class="modal-overlay" id="modal-fiche-client"><div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title" id="fiche-titre">Fiche Client</div><button class="modal-close" onclick="closeModal('modal-fiche-client')">✕</button></div>
+  <div id="fiche-body"></div>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button class="btn btn-success" style="flex:1" onclick="printFiche()">Imprimer</button>
+    <button class="btn btn-danger btn-sm" id="btn-del-client">Supprimer</button>
+  </div>
+</div></div>
+
 </body></html>')
   w.document.close();
   setTimeout(()=>w.print(),500);
@@ -1009,8 +874,6 @@ function exportCSV(){
 function openModal(id){
   document.getElementById(id).classList.add('open');
   if(id==='modal-sortie')updateStockInfo();
-  if(id==='modal-versement'){populateClientSelect('ver-client','');updateSoldePreview();document.getElementById('ver-date').value=today();}
-  if(id==='modal-sortie-montant'){populateClientSelect('sm-client','');updateSmSolde();updateSmStock();document.getElementById('sm-date').value=today();}
 }
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
@@ -1037,303 +900,77 @@ const cm2=document.getElementById('client-month');if(cm2){cm2.value=curMonth();c
 const fm=document.getElementById('farine-month');if(fm){fm.value=curMonth();fm.addEventListener('change',refreshFarineBlocks);}
 refresh();
 
-// ===== CLIENTS =====
-function getSoldeClient(clientId){
-  const client = data.clients.find(c=>c.id===clientId);
-  if(!client) return 0;
-  const soldeInit = client.soldeInitial||0;
-  const totalEnlevements = data.sorties.filter(s=>s.clientId===clientId).reduce((s,r)=>s+(r.montant||0),0);
-  const totalVersements = data.versements_clients.filter(v=>v.clientId===clientId).reduce((s,v)=>s+v.montant,0);
-  return soldeInit + totalEnlevements - totalVersements;
-}
-
-function switchClientTab(tab,btn){
-  ['liste','versements'].forEach(t=>document.getElementById('ctab-'+t).style.display='none');
-  document.getElementById('ctab-'+tab).style.display='block';
-  document.querySelectorAll('#page-clients .tab-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  if(tab==='versements') renderVersementsTable();
-  if(tab==='liste') renderClientsList('all');
-}
-
-function filterClients(filter,btn){
-  document.querySelectorAll('#client-filter-chips .chip').forEach(c=>c.classList.remove('active'));
-  btn.classList.add('active');
-  renderClientsList(filter);
-}
-
-function renderClientsList(filter){
-  const el=document.getElementById('clients-list');
-  if(!el)return;
-  if(!data.clients.length){
-    el.innerHTML='<div class="card"><div class="empty">Aucun client enregistré.<br>Appuyez sur "+ Nouveau client" pour commencer.</div></div>';
-    return;
-  }
-  let clients=[...data.clients];
-  if(filter==='debiteur') clients=clients.filter(c=>getSoldeClient(c.id)>0);
-  if(filter==='ok') clients=clients.filter(c=>getSoldeClient(c.id)<=0);
-  clients.sort((a,b)=>a.nom.localeCompare(b.nom));
-
-  el.innerHTML=clients.map(c=>{
-    const solde=getSoldeClient(c.id);
-    const isDebiteur=solde>0;
-    const lastOp=[
-      ...data.sorties.filter(s=>s.clientId===c.id),
-      ...data.versements_clients.filter(v=>v.clientId===c.id)
-    ].sort((a,b)=>b.date.localeCompare(a.date))[0];
-    return '<div class="card" style="margin-bottom:8px;border-color:'+(isDebiteur?'rgba(229,115,115,0.25)':'rgba(129,199,132,0.2)')+'">'
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
-      +'<div>'
-      +'<div style="font-weight:600;font-size:14px">'+c.nom+'</div>'
-      +(c.tel?'<div style="font-size:11px;color:var(--text2)">📞 '+c.tel+'</div>':'')
-      +(lastOp?'<div style="font-size:10px;color:var(--text3)">Dernière op: '+fmtD(lastOp.date)+'</div>':'')
-      +'</div>'
-      +'<div style="text-align:right">'
-      +'<div style="font-size:10px;color:var(--text2);text-transform:uppercase">'+(isDebiteur?'Doit':'Crédit')+'</div>'
-      +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:700;color:'+(isDebiteur?'var(--accent4)':'var(--accent3)')+'">'+fmtM(Math.abs(solde))+'</div>'
-      +'</div>'
-      +'</div>'
-      +'<div style="display:flex;gap:6px">'
-      +'<button class="btn btn-success btn-sm" style="flex:1" onclick="openVersementPour(\''+c.id+'\')">💰 Versement</button>'
-      +'<button class="btn btn-primary btn-sm" style="flex:1" onclick="openSortiePour(\''+c.id+'\')">📤 Enlèvement</button>'
-      +'<button class="btn btn-sm" style="background:var(--surface3);color:var(--text2);border:1px solid var(--border)" onclick="openFicheClient(\''+c.id+'\')">📋</button>'
-      +'</div>'
-      +'</div>';
-  }).join('');
-}
-
-function renderVersementsTable(){
-  const el=document.getElementById('versements-table');
-  if(!el)return;
-  const rows=[...data.versements_clients].sort((a,b)=>b.date.localeCompare(a.date));
-  el.innerHTML=rows.length?rows.map((v,i)=>{
-    const c=data.clients.find(x=>x.id===v.clientId);
-    return '<tr>'
-      +'<td style="font-size:10px;font-family:\'JetBrains Mono\',monospace">'+fmtD(v.date)+'</td>'
-      +'<td style="font-weight:600;font-size:11px">'+(c?c.nom:'—')+'</td>'
-      +'<td style="color:var(--accent3);font-family:\'JetBrains Mono\',monospace">'+fmtM(v.montant)+'</td>'
-      +'<td style="color:var(--text2);font-size:10px">'+(v.note||'—')+'</td>'
-      +'<td><button class="btn btn-danger btn-sm" onclick="delVersementClient('+i+')">✕</button></td>'
-      +'</tr>';
-  }).join(''):'<tr><td colspan="5" class="empty">Aucun versement</td></tr>';
-}
-
-function populateClientSelect(selectId, selectedId){
-  const sel=document.getElementById(selectId);
-  if(!sel)return;
-  sel.innerHTML=data.clients.map(c=>'<option value="'+c.id+'"'+(c.id===selectedId?' selected':'')+'>'+c.nom+'</option>').join('');
-}
-
-function openVersementPour(clientId){
-  populateClientSelect('ver-client', clientId);
-  updateSoldePreview();
-  document.getElementById('ver-date').value=today();
-  openModal('modal-versement');
-}
-
-function openSortiePour(clientId){
-  populateClientSelect('sm-client', clientId);
-  updateSmSolde();
-  updateSmStock();
-  document.getElementById('sm-date').value=today();
-  openModal('modal-sortie-montant');
-}
-
-function updateSoldePreview(){
-  const clientId=document.getElementById('ver-client')?.value;
-  const montant=parseFloat(document.getElementById('ver-montant')?.value)||0;
-  const solde=getSoldeClient(clientId);
-  const el=document.getElementById('ver-solde-actuel');
-  const el2=document.getElementById('ver-solde-apres');
-  if(el) el.textContent='Solde actuel : '+fmtM(solde)+(solde>0?' (débiteur)':' (soldé)');
-  if(el2 && montant>0){
-    const apres=solde-montant;
-    el2.textContent='Solde après versement : '+fmtM(Math.abs(apres))+(apres>0?' — reste à payer':apres<0?' — crédit client':' — compte soldé ✓');
-    el2.style.color=apres<=0?'var(--accent3)':'var(--accent4)';
-  } else if(el2){
-    el2.textContent='';
-  }
-}
-
-function updateSmSolde(){
-  const clientId=document.getElementById('sm-client')?.value;
-  const solde=getSoldeClient(clientId);
-  const el=document.getElementById('sm-solde-actuel');
-  if(el) el.textContent='Solde actuel : '+fmtM(solde)+(solde>0?' (débiteur)':' (soldé)');
-  updateSmPreview();
-}
-
-function updateSmStock(){
-  const f=document.getElementById('sm-farine')?.value;
-  if(f){
-    const s=getStock(f);
-    const el=document.getElementById('sm-stock-info');
-    if(el) el.textContent='Stock disponible : '+s+' sacs';
-  }
-}
-
-function updateSmPreview(){
-  const clientId=document.getElementById('sm-client')?.value;
-  const montant=parseFloat(document.getElementById('sm-montant')?.value)||0;
-  const solde=getSoldeClient(clientId);
-  const el=document.getElementById('sm-solde-apres');
-  if(el && montant>0){
-    const apres=solde+montant;
-    el.textContent='Solde après enlèvement : '+fmtM(Math.abs(apres))+(apres>0?' — doit payer':apres<0?' — crédit':' — soldé ✓');
-    el.style.color=apres>0?'var(--accent4)':'var(--accent3)';
-  } else if(el){
-    el.textContent='';
-  }
-}
-
-function openFicheClient(clientId){
-  const c=data.clients.find(x=>x.id===clientId);
-  if(!c)return;
-  const solde=getSoldeClient(clientId);
-  const enlevements=data.sorties.filter(s=>s.clientId===clientId).sort((a,b)=>b.date.localeCompare(a.date));
-  const versements=data.versements_clients.filter(v=>v.clientId===clientId).sort((a,b)=>b.date.localeCompare(a.date));
-  const totalEnl=enlevements.reduce((s,r)=>s+(r.montant||0),0);
-  const totalVer=versements.reduce((s,v)=>s+v.montant,0);
-  const isDebiteur=solde>0;
-
-  document.getElementById('fiche-client-title').textContent='📋 '+c.nom;
-  document.getElementById('btn-suppr-client').setAttribute('onclick','deleteClient("'+clientId+'")');
-
-  let html='<div style="background:'+(isDebiteur?'rgba(229,115,115,0.1)':'rgba(129,199,132,0.1)')+';border-radius:10px;padding:12px;margin-bottom:14px;text-align:center">'
-    +'<div style="font-size:11px;color:var(--text2);margin-bottom:4px">SOLDE ACTUEL</div>'
-    +'<div style="font-size:28px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:'+(isDebiteur?'var(--accent4)':'var(--accent3)')+'">'+fmtM(Math.abs(solde))+'</div>'
-    +'<div style="font-size:11px;color:'+(isDebiteur?'var(--accent4)':'var(--accent3)')+'">'+( isDebiteur?'⚠️ Client débiteur':'✅ Compte soldé')+'</div>'
-    +'</div>';
-
-  if(c.tel) html+='<div style="font-size:12px;color:var(--text2);margin-bottom:10px">📞 '+c.tel+'</div>';
-
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">'
-    +'<div style="background:var(--surface2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--text2)">SOLDE INIT.</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:600">'+fmtM(c.soldeInitial||0)+'</div></div>'
-    +'<div style="background:var(--surface2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--accent4)">ENLÈVEMENTS</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:600;color:var(--accent4)">'+fmtM(totalEnl)+'</div></div>'
-    +'<div style="background:var(--surface2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--accent3)">VERSEMENTS</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:600;color:var(--accent3)">'+fmtM(totalVer)+'</div></div>'
-    +'</div>';
-
-  // Recent operations
-  const allOps=[
-    ...enlevements.map(e=>({date:e.date,type:'ENL',label:e.farine+' '+e.qty+' sacs',montant:e.montant||0,sign:'+'})),
-    ...versements.map(v=>({date:v.date,type:'VER',label:v.note||'Versement',montant:v.montant,sign:'-'}))
-  ].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15);
-
-  if(allOps.length){
-    html+='<div class="card-title" style="margin-bottom:8px">Historique</div>';
-    html+=allOps.map(op=>'<div class="dep-row">'
-      +'<div><span class="badge '+(op.type==='VER'?'badge-in':'badge-out')+'" style="font-size:9px">'+op.type+'</span>'
-      +' <span style="font-size:11px">'+op.label+'</span>'
-      +'<div style="font-size:10px;color:var(--text3)">'+fmtD(op.date)+'</div></div>'
-      +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:600;color:'+(op.type==='VER'?'var(--accent3)':'var(--accent4)')+'">'+op.sign+fmtM(op.montant)+'</span>'
-      +'</div>'
-    ).join('');
-  }
-
-  document.getElementById('fiche-client-body').innerHTML=html;
-  window._ficheClientId=clientId;
-  openModal('modal-fiche-client');
-}
-
-function printFicheClient(){
-  const clientId=window._ficheClientId;
-  const c=data.clients.find(x=>x.id===clientId);
-  if(!c)return;
-  const solde=getSoldeClient(clientId);
-  const body=document.getElementById('fiche-client-body').innerHTML;
-  const w=window.open('','_blank');
-  const css='body{font-family:Arial,sans-serif;padding:24px;color:#111;font-size:13px;max-width:600px;margin:0 auto}h1{font-size:18px;margin-bottom:8px}.dep-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}.badge{font-size:10px;padding:2px 6px;border-radius:10px;background:#eee}.card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin:12px 0 6px}@media print{button{display:none}}';
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fiche '+c.nom+'</title><style>'+css+'</style></head><body><h1>Fiche Client : '+c.nom+'</h1><p style="font-size:11px;color:#888">Généré le '+new Date().toLocaleDateString('fr-FR')+'</p>'+body+'</body></html>');
-  w.document.close();
-  setTimeout(function(){w.print();},500);
-}
-
-function deleteClient(clientId){
-  if(!confirm('Supprimer ce client et tout son historique ?'))return;
-  data.clients=data.clients.filter(c=>c.id!==clientId);
-  data.sorties=data.sorties.filter(s=>s.clientId!==clientId);
-  data.versements_clients=data.versements_clients.filter(v=>v.clientId!==clientId);
-  save();closeModal('modal-fiche-client');refresh();toast('Client supprimé');
-}
-
-function saveNouveauClient(){
-  const nom=document.getElementById('nc-nom').value.trim();
-  if(!nom){toast('⚠️ Nom requis','w');return;}
-  const existing=data.clients.find(c=>c.nom.toLowerCase()===nom.toLowerCase());
-  if(existing){toast('⚠️ Ce client existe déjà','w');return;}
-  const id='c_'+Date.now();
-  data.clients.push({
-    id,
-    nom,
-    tel:document.getElementById('nc-tel').value.trim(),
-    soldeInitial:parseFloat(document.getElementById('nc-solde').value)||0,
-    note:document.getElementById('nc-note').value.trim(),
-    dateCreation:today()
-  });
-  save();closeModal('modal-nouveau-client');
-  ['nc-nom','nc-tel','nc-note'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('nc-solde').value='0';
-  toast('✓ Client ajouté');refresh();
-}
-
-function saveVersementClient(){
-  const clientId=document.getElementById('ver-client').value;
-  const montant=parseFloat(document.getElementById('ver-montant').value)||0;
-  if(!clientId){toast('⚠️ Client requis','w');return;}
-  if(!montant){toast('⚠️ Montant requis','w');return;}
-  data.versements_clients.push({
-    clientId,montant,
-    note:document.getElementById('ver-note').value,
-    date:document.getElementById('ver-date').value||today()
-  });
-  save();closeModal('modal-versement');
-  document.getElementById('ver-montant').value='';
-  document.getElementById('ver-note').value='';
-  toast('✓ Versement enregistré');refresh();
-}
-
-function delVersementClient(i){
-  if(!confirm('Supprimer ce versement ?'))return;
-  data.versements_clients.splice(i,1);save();refresh();toast('Supprimé');
-}
-
-function saveSmSortie(){
-  const clientId=document.getElementById('sm-client').value;
-  const farine=document.getElementById('sm-farine').value;
-  const qty=parseInt(document.getElementById('sm-qty').value)||0;
-  const montant=parseFloat(document.getElementById('sm-montant').value)||0;
-  const date=document.getElementById('sm-date').value||today();
-  if(!qty){toast('⚠️ Quantité requise','w');return;}
-  if(!montant){toast('⚠️ Montant facturé requis','w');return;}
-  if(qty>getStock(farine)){toast('⚠️ Stock insuffisant !','w');return;}
-  const client=data.clients.find(c=>c.id===clientId);
-  data.sorties.push({
-    farine,qty,montant,clientId,
-    client:client?client.nom:'',
-    date,
-    note:document.getElementById('sm-note').value
-  });
-  save();closeModal('modal-sortie-montant');
-  ['sm-qty','sm-montant','sm-note'].forEach(id=>document.getElementById(id).value='');
-  toast('✓ Enlèvement enregistré');refresh();
-}
-
-function openModal_orig(id){
-  document.getElementById(id).classList.add('open');
-  if(id==='modal-sortie')updateStockInfo();
-  if(id==='modal-versement'){
-    populateClientSelect('ver-client','');
-    updateSoldePreview();
-    document.getElementById('ver-date').value=today();
-  }
-  if(id==='modal-sortie-montant'){
-    populateClientSelect('sm-client','');
-    updateSmSolde();
-    updateSmStock();
-    document.getElementById('sm-date').value=today();
-  }
-}
+function getSoldeClient(cid){var c=data.clients.find(function(x){return x.id===cid;});if(!c)return 0;var init=c.soldeInitial||0;var enl=data.sorties.filter(function(s){return s.clientId===cid;}).reduce(function(s,r){return s+(r.montant||0);},0);var ver=data.versements_clients.filter(function(v){return v.clientId===cid;}).reduce(function(s,v){return s+v.montant;},0);return init+enl-ver;}
+function switchCTab(tab,btn){['liste','versements'].forEach(function(t){document.getElementById('ctab-'+t).style.display='none';});document.getElementById('ctab-'+tab).style.display='block';document.querySelectorAll('#page-clients .tab-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');if(tab==='versements')renderVTable();if(tab==='liste')renderClients('all');}
+function filterC(f,btn){document.querySelectorAll('#cf-chips .chip').forEach(function(c){c.classList.remove('active');});btn.classList.add('active');renderClients(f);}
+function renderClients(filter){var el=document.getElementById('clients-list');if(!el)return;if(!data.clients||!data.clients.length){el.innerHTML='<div class="card"><div class="empty">Aucun client enregistre.</div></div>';return;}var list=data.clients.slice().sort(function(a,b){return a.nom.localeCompare(b.nom);});if(filter==='debiteur')list=list.filter(function(c){return getSoldeClient(c.id)>0;});if(filter==='ok')list=list.filter(function(c){return getSoldeClient(c.id)<=0;});if(filter==='limite')list=list.filter(function(c){return c.limiteCredit>0&&getSoldeClient(c.id)>c.limiteCredit;});var h=list.map(function(c){var solde=getSoldeClient(c.id);var isD=solde>0;var over=c.limiteCredit>0&&solde>c.limiteCredit;var ops=data.sorties.filter(function(s){return s.clientId===c.id;}).concat(data.versements_clients.filter(function(v){return v.clientId===c.id;})).sort(function(a,b){return b.date.localeCompare(a.date);});var last=ops.length?fmtD(ops[0].date):'—';return '<div class="card" style="margin-bottom:8px;border-color:'+(over?'rgba(229,115,115,0.5)':isD?'rgba(229,115,115,0.2)':'rgba(129,199,132,0.2)')+'">'+'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">'+'<div><div style="font-weight:700;font-size:14px">'+c.nom+'</div>'+(c.tel?'<div style="font-size:11px;color:var(--text2)">'+c.tel+'</div>':'')+'<div style="font-size:10px;color:var(--text3)">Dern: '+last+'</div>'+(over?'<div style="font-size:10px;color:var(--accent4);font-weight:700">Limite depassee!</div>':'')+'</div>'+'<div style="text-align:right"><div style="font-size:10px;color:var(--text2)">'+(isD?'DOIT':'CREDIT')+'</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:700;color:'+(isD?'var(--accent4)':'var(--accent3)')+'">'+fmtM(Math.abs(solde))+'</div>'+(c.limiteCredit>0?'<div style="font-size:10px;color:var(--text3)">Lim: '+fmtM(c.limiteCredit)+'</div>':'')+'</div></div>'+'<div style="display:flex;gap:6px"><button class="btn btn-success btn-sm" style="flex:1" onclick="openModalVer(\''+c.id+'\')">Versement</button><button class="btn btn-primary btn-sm" style="flex:1" onclick="openModalEnl(\''+c.id+'\')">Enlevement</button><button class="btn btn-sm" style="background:var(--surface3);color:var(--text2);border:1px solid var(--border)" onclick="openFiche(\''+c.id+'\')">Fiche</button></div></div>';}).join('');el.innerHTML=h||'<div class="card"><div class="empty">Aucun resultat</div></div>';}
+function fillSel(sid,selected){var sel=document.getElementById(sid);if(!sel)return;var sorted=data.clients.slice().sort(function(a,b){return a.nom.localeCompare(b.nom);});sel.innerHTML=sorted.map(function(c){return '<option value="'+c.id+'"'+(c.id===selected?' selected':'')+'>'+c.nom+'</option>';}).join('');}
+function openModalVer(cid){fillSel('vc-client',cid);document.getElementById('vc-date').value=today();document.getElementById('vc-montant').value='';document.getElementById('vc-note').value='';previewVer();openModal('modal-versement-client');}
+function openModalEnl(cid){fillSel('ec-client',cid);document.getElementById('ec-date').value=today();document.getElementById('ec-qty').value='';document.getElementById('ec-montant').value='';document.getElementById('ec-note').value='';updateEcStock();previewEnl();openModal('modal-enlev-client');}
+function previewVer(){var cid=document.getElementById('vc-client')&&document.getElementById('vc-client').value;var m=parseFloat(document.getElementById('vc-montant')&&document.getElementById('vc-montant').value)||0;var s=getSoldeClient(cid);var e1=document.getElementById('vc-solde-now');var e2=document.getElementById('vc-preview');if(e1)e1.textContent='Solde actuel: '+fmtM(s)+(s>0?' (debiteur)':' (solde)');if(e2&&m>0){var a=s-m;e2.textContent='Solde apres versement: '+fmtM(Math.abs(a))+(a>0?' - reste a payer':a<0?' - credit':' SOLDE!');e2.style.color=a<=0?'var(--accent3)':'var(--accent4)';}else if(e2)e2.textContent='';}
+function previewEnl(){var cid=document.getElementById('ec-client')&&document.getElementById('ec-client').value;var m=parseFloat(document.getElementById('ec-montant')&&document.getElementById('ec-montant').value)||0;var s=getSoldeClient(cid);var c=data.clients.find(function(x){return x.id===cid;});var e2=document.getElementById('ec-preview');if(e2&&m>0){var a=s+m;var over=c&&c.limiteCredit>0&&a>c.limiteCredit;e2.textContent='Solde apres: '+fmtM(a)+(over?' DEPASSE LIMITE!':' - doit payer');e2.style.color=over?'var(--accent4)':'var(--accent)';}else if(e2)e2.textContent='';}
+function updateEcStock(){var f=document.getElementById('ec-farine')&&document.getElementById('ec-farine').value;if(f){var el=document.getElementById('ec-stock-info');if(el)el.textContent='Stock disponible: '+getStock(f)+' sacs';}}
+function saveNewClient(){var nom=(document.getElementById('nc-nom').value||'').trim();if(!nom){toast('Nom requis','w');return;}if(data.clients.find(function(c){return c.nom.toLowerCase()===nom.toLowerCase();})){toast('Client deja existant','w');return;}var id='c_'+Date.now();data.clients.push({id:id,nom:nom,tel:document.getElementById('nc-tel').value.trim(),soldeInitial:parseFloat(document.getElementById('nc-solde').value)||0,limiteCredit:parseFloat(document.getElementById('nc-limite').value)||0,note:'',dateCreation:today()});save();closeModal('modal-new-client');['nc-nom','nc-tel'].forEach(function(i){document.getElementById(i).value='';});document.getElementById('nc-solde').value='0';document.getElementById('nc-limite').value='0';toast('Client ajoute');refresh();}
+function saveVer(){var cid=document.getElementById('vc-client').value;var m=parseFloat(document.getElementById('vc-montant').value)||0;if(!m){toast('Montant requis','w');return;}data.versements_clients.push({clientId:cid,montant:m,note:document.getElementById('vc-note').value,date:document.getElementById('vc-date').value||today()});save();closeModal('modal-versement-client');toast('Versement enregistre');refresh();}
+function saveEnl(){var cid=document.getElementById('ec-client').value;var farine=document.getElementById('ec-farine').value;var qty=parseInt(document.getElementById('ec-qty').value)||0;var m=parseFloat(document.getElementById('ec-montant').value)||0;if(!qty){toast('Quantite requise','w');return;}if(!m){toast('Montant requis','w');return;}if(qty>getStock(farine)){toast('Stock insuffisant!','w');return;}var cl=data.clients.find(function(c){return c.id===cid;});data.sorties.push({farine:farine,qty:qty,montant:m,clientId:cid,client:cl?cl.nom:'',date:document.getElementById('ec-date').value||today(),note:document.getElementById('ec-note').value});save();closeModal('modal-enlev-client');toast('Enlevement enregistre');refresh();}
+function renderVTable(){var el=document.getElementById('vtable');if(!el)return;var rows=data.versements_clients.slice().sort(function(a,b){return b.date.localeCompare(a.date);});el.innerHTML=rows.length?rows.map(function(v,i){var c=data.clients.find(function(x){return x.id===v.clientId;});return '<tr><td style="font-size:10px;font-family:\'JetBrains Mono\',monospace">'+fmtD(v.date)+'</td><td style="font-weight:600;font-size:11px">'+(c?c.nom:'?')+'</td><td style="color:var(--accent3);font-family:\'JetBrains Mono\',monospace">'+fmtM(v.montant)+'</td><td style="color:var(--text2);font-size:10px">'+(v.note||'—')+'</td><td><button class="btn btn-danger btn-sm" onclick="delVer('+i+')">x</button></td></tr>';}).join(''):'<tr><td colspan="5" class="empty">Aucun versement</td></tr>';}
+function delVer(i){if(!confirm('Supprimer?'))return;data.versements_clients.splice(i,1);save();refresh();toast('Supprime');}
+function openFiche(cid){var c=data.clients.find(function(x){return x.id===cid;});if(!c)return;var solde=getSoldeClient(cid);var isD=solde>0;var enls=data.sorties.filter(function(s){return s.clientId===cid;}).sort(function(a,b){return b.date.localeCompare(a.date);});var vers=data.versements_clients.filter(function(v){return v.clientId===cid;}).sort(function(a,b){return b.date.localeCompare(a.date);});var totalEnl=enls.reduce(function(s,r){return s+(r.montant||0);},0);var totalVer=vers.reduce(function(s,v){return s+v.montant;},0);var over=c.limiteCredit>0&&solde>c.limiteCredit;document.getElementById('fiche-titre').textContent='Fiche: '+c.nom;document.getElementById('btn-del-client').setAttribute('onclick','delClient("'+cid+'")');window._ficheCid=cid;var h='<div style="background:'+(isD?'rgba(229,115,115,0.1)':'rgba(129,199,132,0.1)')+';border-radius:10px;padding:14px;text-align:center;margin-bottom:12px"><div style="font-size:10px;color:var(--text2);margin-bottom:4px">SOLDE ACTUEL</div><div style="font-size:30px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:'+(isD?'var(--accent4)':'var(--accent3)')+'">'+fmtM(Math.abs(solde))+'</div><div style="font-size:11px;color:'+(isD?'var(--accent4)':'var(--accent3)')+'">'+( isD?'DEBITEUR':'SOLDE')+'</div>'+(over?'<div style="font-size:12px;color:var(--accent4);font-weight:700;margin-top:4px">LIMITE CREDIT DEPASSEE</div>':'')+'</div>';h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"><div style="background:var(--surface2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--text2)">SOLDE INIT.</div><div style="font-size:12px;font-weight:700;font-family:\'JetBrains Mono\',monospace">'+fmtM(c.soldeInitial||0)+'</div></div><div style="background:var(--surface2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--accent2)">LIMITE CREDIT</div><div style="font-size:12px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:var(--accent2)">'+fmtM(c.limiteCredit||0)+'</div></div><div style="background:var(--surface2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--accent4)">ENLEVEMENTS</div><div style="font-size:12px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:var(--accent4)">'+fmtM(totalEnl)+'</div></div><div style="background:var(--surface2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--accent3)">VERSEMENTS</div><div style="font-size:12px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:var(--accent3)">'+fmtM(totalVer)+'</div></div></div>';var allOps=enls.map(function(e){return{date:e.date,type:'ENL',label:e.farine+' x'+e.qty,montant:e.montant||0};}).concat(vers.map(function(v){return{date:v.date,type:'VER',label:v.note||'Versement',montant:v.montant};})).sort(function(a,b){return b.date.localeCompare(a.date);}).slice(0,20);if(allOps.length){h+='<div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Historique</div>';h+=allOps.map(function(op){return '<div class="dep-row"><div><span class="badge '+(op.type==='VER'?'badge-in':'badge-out')+'">'+op.type+'</span> <span style="font-size:11px">'+op.label+'</span><div style="font-size:10px;color:var(--text3)">'+fmtD(op.date)+'</div></div><span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:600;color:'+(op.type==='VER'?'var(--accent3)':'var(--accent4)')+'">'+fmtM(op.montant)+'</span></div>';}).join('');}document.getElementById('fiche-body').innerHTML=h;openModal('modal-fiche-client');}
+function printFiche(){var cid=window._ficheCid;var c=data.clients.find(function(x){return x.id===cid;});if(!c)return;var body=document.getElementById('fiche-body').innerHTML;var w=window.open('','_blank');var css='body{font-family:Arial,sans-serif;padding:24px;color:#111;font-size:13px;max-width:600px;margin:0 auto}h2{font-size:16px}.dep-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}.badge{font-size:10px;padding:2px 6px;border-radius:10px;background:#eee}@media print{button{display:none}}';w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+c.nom+'</title><style>'+css+'</style></head><body><h2>DEPOT DAKAR 3 - Fiche Client</h2><h3>'+c.nom+'</h3><p style="font-size:11px;color:#888">Genere le '+new Date().toLocaleDateString('fr-FR')+'</p>'+body+'</body></html>');w.document.close();setTimeout(function(){w.print();},500);}
+function delClient(cid){if(!confirm('Supprimer ce client?'))return;data.clients=data.clients.filter(function(c){return c.id!==cid;});data.sorties=data.sorties.filter(function(s){return s.clientId!==cid;});data.versements_clients=data.versements_clients.filter(function(v){return v.clientId!==cid;});save();closeModal('modal-fiche-client');refresh();toast('Supprime');}
 
 </script>
+
+<div class="modal-overlay" id="modal-new-client"><div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">👤 Nouveau client</div><button class="modal-close" onclick="closeModal('modal-new-client')">✕</button></div>
+  <div class="form-group"><label class="form-label">Nom</label><input type="text" class="form-input" id="nc-nom" placeholder="Nom complet"></div>
+  <div class="form-group"><label class="form-label">Téléphone</label><input type="tel" class="form-input" id="nc-tel" placeholder="77 000 00 00"></div>
+  <div class="form-group"><label class="form-label">Solde initial (F CFA)</label><input type="number" class="form-input" id="nc-solde" value="0" inputmode="numeric"></div>
+  <div class="form-group"><label class="form-label">Limite de crédit (F CFA)</label><input type="number" class="form-input" id="nc-limite" value="0" inputmode="numeric"></div>
+  <button class="btn btn-primary" style="width:100%" onclick="saveNewClient()">Enregistrer</button>
+</div></div>
+
+<div class="modal-overlay" id="modal-versement-client"><div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">💰 Versement</div><button class="modal-close" onclick="closeModal('modal-versement-client')">✕</button></div>
+  <div class="form-group"><label class="form-label">Client</label><select class="form-select" id="vc-client" onchange="previewVer()"></select></div>
+  <div id="vc-solde-now" style="font-size:12px;padding:7px 10px;background:rgba(245,166,35,0.08);border-radius:6px;margin-bottom:10px"></div>
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Montant (F CFA)</label><input type="number" class="form-input" id="vc-montant" min="0" placeholder="50000" inputmode="numeric" onchange="previewVer()"></div>
+    <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="vc-date"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Note</label><input type="text" class="form-input" id="vc-note" placeholder="Versement partiel..."></div>
+  <div id="vc-preview" style="text-align:center;padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:10px;font-weight:600;font-size:13px"></div>
+  <button class="btn btn-primary" style="width:100%" onclick="saveVer()">Enregistrer</button>
+</div></div>
+
+<div class="modal-overlay" id="modal-enlev-client"><div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">📤 Enlèvement</div><button class="modal-close" onclick="closeModal('modal-enlev-client')">✕</button></div>
+  <div class="form-group"><label class="form-label">Client</label><select class="form-select" id="ec-client" onchange="previewEnl()"></select></div>
+  <div id="ec-solde-now" style="font-size:12px;padding:7px 10px;background:rgba(245,166,35,0.08);border-radius:6px;margin-bottom:10px"></div>
+  <div class="form-group"><label class="form-label">Type de farine</label>
+    <select class="form-select" id="ec-farine" onchange="updateEcStock()">
+      <option value="FIRST CHOICE">FARINE FIRST CHOICE</option><option value="TERANGA">FARINE TERANGA</option>
+      <option value="PATISSIERE">FARINE PATISSIERE</option><option value="BEIGNET">FARINE BEIGNET</option>
+    </select></div>
+  <div id="ec-stock-info" style="font-size:11px;color:var(--accent);margin-bottom:8px;padding:5px 10px;background:rgba(245,166,35,0.06);border-radius:6px"></div>
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Nombre de sacs</label><input type="number" class="form-input" id="ec-qty" min="1" placeholder="10" inputmode="numeric"></div>
+    <div class="form-group"><label class="form-label">Montant (F CFA)</label><input type="number" class="form-input" id="ec-montant" min="0" placeholder="170000" inputmode="numeric" onchange="previewEnl()"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="ec-date"></div>
+  <div class="form-group"><label class="form-label">Note</label><input type="text" class="form-input" id="ec-note" placeholder="Remarque..."></div>
+  <div id="ec-preview" style="text-align:center;padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:10px;font-weight:600;font-size:13px"></div>
+  <button class="btn btn-primary" style="width:100%" onclick="saveEnl()">Enregistrer</button>
+</div></div>
+
+<div class="modal-overlay" id="modal-fiche-client"><div class="modal"><div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title" id="fiche-titre">Fiche Client</div><button class="modal-close" onclick="closeModal('modal-fiche-client')">✕</button></div>
+  <div id="fiche-body"></div>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button class="btn btn-success" style="flex:1" onclick="printFiche()">Imprimer</button>
+    <button class="btn btn-danger btn-sm" id="btn-del-client">Supprimer</button>
+  </div>
+</div></div>
+
 </body>
 </html>
