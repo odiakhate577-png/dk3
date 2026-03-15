@@ -416,6 +416,10 @@ tr:last-child td{border-bottom:none}
       <input type="number" class="form-input" id="nc-solde" placeholder="0" inputmode="numeric" min="0" value="0">
     </div>
     <div class="form-group">
+      <label class="form-label">Limite de crédit (F CFA)</label>
+      <input type="number" class="form-input" id="nc-limite" placeholder="0" inputmode="numeric" min="0" value="0">
+    </div>
+    <div class="form-group">
       <label class="form-label">Note (optionnel)</label>
       <input type="text" class="form-input" id="nc-note" placeholder="Remarque...">
     </div>
@@ -1090,6 +1094,8 @@ function renderClientsList(filter){
       +'</div>'
       +'<div style="text-align:right">'
       +'<div style="font-size:10px;color:var(--text2);text-transform:uppercase">'+(isDebiteur?'Doit':'Crédit')+'</div>'
+      +(c.limiteCredit>0 && solde>c.limiteCredit?'<div style="font-size:9px;color:var(--accent4)">🔴 Limite dépassée</div>':'')
+      +(c.limiteCredit>0&&solde>c.limiteCredit?'<div style="font-size:9px;color:var(--accent4);font-weight:600">⚠️ Limite dépassée</div>':'')
       +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:700;color:'+(isDebiteur?'var(--accent4)':'var(--accent3)')+'">'+fmtM(Math.abs(solde))+'</div>'
       +'</div>'
       +'</div>'
@@ -1203,6 +1209,7 @@ function openFicheClient(clientId){
     +'<div style="font-size:11px;color:var(--text2);margin-bottom:4px">SOLDE ACTUEL</div>'
     +'<div style="font-size:28px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:'+(isDebiteur?'var(--accent4)':'var(--accent3)')+'">'+fmtM(Math.abs(solde))+'</div>'
     +'<div style="font-size:11px;color:'+(isDebiteur?'var(--accent4)':'var(--accent3)')+'">'+( isDebiteur?'⚠️ Client débiteur':'✅ Compte soldé')+'</div>'
+    +(c.limiteCredit?'<div style="font-size:10px;color:var(--text2);margin-top:4px">Limite crédit : '+fmtM(c.limiteCredit)+(solde>c.limiteCredit?'<span style=\'color:var(--accent4)\'>  🔴 DÉPASSÉ</span>':'')+'</div>':'')
     +'</div>';
 
   if(c.tel) html+='<div style="font-size:12px;color:var(--text2);margin-bottom:10px">📞 '+c.tel+'</div>';
@@ -1211,6 +1218,7 @@ function openFicheClient(clientId){
     +'<div style="background:var(--surface2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--text2)">SOLDE INIT.</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:600">'+fmtM(c.soldeInitial||0)+'</div></div>'
     +'<div style="background:var(--surface2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--accent4)">ENLÈVEMENTS</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:600;color:var(--accent4)">'+fmtM(totalEnl)+'</div></div>'
     +'<div style="background:var(--surface2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--accent3)">VERSEMENTS</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:600;color:var(--accent3)">'+fmtM(totalVer)+'</div></div>'
+    +(c.limiteCredit>0?'<div style="background:var(--surface2);border-radius:8px;padding:8px;text-align:center;margin-top:8px;grid-column:span 3"><div style="font-size:9px;color:var(--accent2)">LIMITE CRÉDIT</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:600;color:var(--accent2)">'+fmtM(c.limiteCredit)+'</div></div>':'')
     +'</div>';
 
   // Recent operations
@@ -1267,12 +1275,14 @@ function saveNouveauClient(){
     nom,
     tel:document.getElementById('nc-tel').value.trim(),
     soldeInitial:parseFloat(document.getElementById('nc-solde').value)||0,
+    limiteCredit:parseFloat(document.getElementById('nc-limite').value)||0,
     note:document.getElementById('nc-note').value.trim(),
     dateCreation:today()
   });
   save();closeModal('modal-nouveau-client');
   ['nc-nom','nc-tel','nc-note'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('nc-solde').value='0';
+  document.getElementById('nc-limite').value='0';
   toast('✓ Client ajouté');refresh();
 }
 
@@ -1334,6 +1344,24 @@ function openModal_orig(id){
   }
 }
 
+
+// Pre-load clients from Excel import
+(function(){
+  var stored = localStorage.getItem('depot_farine_v4');
+  var d = stored ? JSON.parse(stored) : null;
+  if(!d || !d.clients || d.clients.length === 0){
+    var importedClients = [{"id": "c_7493623601", "nom": "BAY BABOU", "tel": "", "soldeInitial": 3309500.0, "limiteCredit": 4700000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_5297635062", "nom": "ABDOU AHAD DIBA", "tel": "", "soldeInitial": 1518300.0, "limiteCredit": 1520000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_2777291233", "nom": "OMAR GAYE", "tel": "", "soldeInitial": 2336400.0, "limiteCredit": 2355000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_2466595120", "nom": "DIAKHOUMPA", "tel": "", "soldeInitial": 0.0, "limiteCredit": 0.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_7264377713", "nom": "KHADIM CISSE", "tel": "", "soldeInitial": 0.0, "limiteCredit": 760000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_1306253952", "nom": "BABACAR DIENE", "tel": "", "soldeInitial": 9120000.0, "limiteCredit": 9120000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_4781678165", "nom": "DAOUDA DIOP", "tel": "", "soldeInitial": 5837000.0, "limiteCredit": 15000000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_2946427798", "nom": "ELIMANE FAYE", "tel": "", "soldeInitial": 3800000.0, "limiteCredit": 3800000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_5018061949", "nom": "FATOU T DIOP", "tel": "", "soldeInitial": 0.0, "limiteCredit": 1520000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_1776225633", "nom": "IBRAHIMA CISSE", "tel": "", "soldeInitial": 15000000.0, "limiteCredit": 15000000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_1481952466", "nom": "IBRAHIMA NDIAYE", "tel": "", "soldeInitial": 9138000.0, "limiteCredit": 10000000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_7147364948", "nom": "MAMADOU NGOM", "tel": "", "soldeInitial": 9907500.0, "limiteCredit": 10000000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_7736417284", "nom": "SERIGNE DIAKHATE", "tel": "", "soldeInitial": 3040000.0, "limiteCredit": 3040000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_2902547774", "nom": "AMADOU BA DRAME", "tel": "", "soldeInitial": 0.0, "limiteCredit": 1520000.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_4228610019", "nom": "BARA DIOP", "tel": "", "soldeInitial": -1200.0, "limiteCredit": 0.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_7107992537", "nom": "BOULANGERIE YOUSSEF", "tel": "", "soldeInitial": 0.0, "limiteCredit": 0.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_3024843549", "nom": "ALPHOUSSEYNI MANGA", "tel": "", "soldeInitial": 0.0, "limiteCredit": 0.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_3018833846", "nom": "FALLOU BA", "tel": "", "soldeInitial": 0.0, "limiteCredit": 0.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_9011175038", "nom": "OUSMANE GUISSE", "tel": "", "soldeInitial": 0.0, "limiteCredit": 0.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_7342906740", "nom": "MAMADOU DIARRA", "tel": "", "soldeInitial": 0.0, "limiteCredit": 0.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_3258344407", "nom": "KHADIJATOU DIALLO", "tel": "", "soldeInitial": 0.0, "limiteCredit": 0.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_6366660240", "nom": "MOUCTAR LY", "tel": "", "soldeInitial": 0.0, "limiteCredit": 0.0, "note": "", "dateCreation": "2025-03-15"}, {"id": "c_1352176817", "nom": "MAOULOUD MAIGA", "tel": "", "soldeInitial": 0.0, "limiteCredit": 0.0, "note": "", "dateCreation": "2025-03-15"}];
+    if(!d){
+      d = {appros:[],sorties:[],depenses:[],virements:[],
+           seuils:{'FIRST CHOICE':20,'TERANGA':20,'PATISSIERE':20,'BEIGNET':20},
+           clients:importedClients, versements_clients:[]};
+    } else {
+      d.clients = importedClients;
+    }
+    localStorage.setItem('depot_farine_v4', JSON.stringify(d));
+    console.log('Clients importés: ' + importedClients.length);
+  }
+})();
 </script>
 </body>
 </html>
