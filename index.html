@@ -225,7 +225,19 @@ tr:last-child td{border-bottom:none}
   <div class="sh"><div class="st">Clients</div><button class="btn bp bsm" onclick="om('m-ncli')">+ Nouveau</button></div>
   <div class="tabs">
     <button class="tb act" onclick="ctab('liste',this)">Clients</button>
+    <button class="tb" onclick="ctab('enlevements',this)">Enlevements</button>
     <button class="tb" onclick="ctab('versements',this)">Versements</button>
+  </div>
+  <div id="ct-enl" style="display:none">
+    <div class="sh"><div class="st" style="font-size:12px;color:var(--tx2)">Tous les enlevements</div></div>
+    <div class="fscr">
+      <button class="chip act" onclick="fltEnl('all',this)">Tous</button>
+      <button class="chip" onclick="fltEnl('FIRST CHOICE',this)">First Choice</button>
+      <button class="chip" onclick="fltEnl('TERANGA',this)">Teranga</button>
+      <button class="chip" onclick="fltEnl('PATISSIERE',this)">Patissiere</button>
+      <button class="chip" onclick="fltEnl('BEIGNET',this)">Beignet</button>
+    </div>
+    <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Client</th><th>Farine</th><th>Sacs</th><th>Montant</th><th></th></tr></thead><tbody id="tb-enl"></tbody></table></div></div>
   </div>
   <div id="ct-liste">
     <div class="fscr">
@@ -258,7 +270,6 @@ tr:last-child td{border-bottom:none}
   <button class="nb act" onclick="sp('home',this)"><span class="ic">&#128202;</span>Accueil</button>
   <button class="nb" onclick="sp('stock',this)"><span class="ic">&#128451;</span>Stock</button>
   <button class="nb" onclick="sp('appro',this)"><span class="ic">&#128230;</span>Entrees</button>
-
   <button class="nb" onclick="sp('dep',this)"><span class="ic">&#128176;</span>Depenses</button>
   <button class="nb" onclick="sp('cli',this)"><span class="ic">&#128100;</span>Clients</button>
   <button class="nb" onclick="sp('hist',this)"><span class="ic">&#128203;</span>Historique</button>
@@ -349,6 +360,22 @@ tr:last-child td{border-bottom:none}
     <button class="btn bs" style="flex:1" onclick="printFiche()">Imprimer</button>
     <button class="btn bd2 bsm" id="btn-del-cli">Supprimer</button>
   </div>
+</div></div>
+
+
+<div class="ov" id="m-edit-enl"><div class="modal">
+  <div class="mhd"></div>
+  <div class="mth"><div class="mtx">Modifier l enlevement</div><button class="mcl" onclick="cm('m-edit-enl')">X</button></div>
+  <input type="hidden" id="edit-enl-idx">
+  <div class="fg"><label class="fl">Client</label><select class="fsel" id="edit-enl-c"></select></div>
+  <div class="fg"><label class="fl">Type de farine</label><select class="fsel" id="edit-enl-f"><option value="FIRST CHOICE">FARINE FIRST CHOICE</option><option value="TERANGA">FARINE TERANGA</option><option value="PATISSIERE">FARINE PATISSIERE</option><option value="BEIGNET">FARINE BEIGNET</option></select></div>
+  <div class="g2">
+    <div class="fg"><label class="fl">Nombre de sacs</label><input type="number" class="fi" id="edit-enl-q" min="1" inputmode="numeric"></div>
+    <div class="fg"><label class="fl">Montant facture (F CFA)</label><input type="number" class="fi" id="edit-enl-m" min="0" inputmode="numeric"></div>
+  </div>
+  <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="edit-enl-d"></div>
+  <div class="fg"><label class="fl">Note</label><input type="text" class="fi" id="edit-enl-n" placeholder="Remarque..."></div>
+  <button class="btn bp" style="width:100%;margin-top:4px" onclick="svEditEnl()">Enregistrer les modifications</button>
 </div></div>
 
 <div class="ov" id="m-rap"><div class="modal">
@@ -461,6 +488,7 @@ function rf(){
   rfAp();
   rfCliList(window._cflt||'all');
   rfVers();
+  rfEnlTable(window._eflt||'all');
   rfHist();
 }
 
@@ -567,10 +595,10 @@ function openFiche(cid){
     +'<div style="background:var(--s2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--ac4)">ENLEVEMENTS</div><div style="font-family:monospace;font-size:13px;font-weight:600;color:var(--ac4)">'+fmtF(totE)+'</div></div>'
     +'<div style="background:var(--s2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--ac3)">VERSEMENTS</div><div style="font-family:monospace;font-size:13px;font-weight:600;color:var(--ac3)">'+fmtF(totV)+'</div></div>'
     +'</div>';
-  var ops=enls.map(function(e){var ri=D.sorties.indexOf(e);return{date:e.date,type:'ENL',label:e.farine+' x'+e.qty,mont:e.montant||0,sign:'+',realIdx:ri};}).concat(vers.map(function(v){return{date:v.date,type:'VER',label:v.note||'Versement',mont:v.montant,sign:'-',realIdx:-1};})).sort(function(a,b){return b.date.localeCompare(a.date);}).slice(0,20);
+  var ops=enls.map(function(e){return{date:e.date,type:'ENL',label:e.farine+' x'+e.qty,mont:e.montant||0,sign:'+'};}).concat(vers.map(function(v){return{date:v.date,type:'VER',label:v.note||'Versement',mont:v.montant,sign:'-'};})).sort(function(a,b){return b.date.localeCompare(a.date);}).slice(0,20);
   if(ops.length){
     h+='<div style="font-size:10px;color:var(--tx2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:600">Historique</div>';
-    h+=ops.map(function(op){return '<div class="dr"><div><span class="bdg '+(op.type==='VER'?'bin':'bout')+'">'+op.type+'</span> <span style="font-size:11px">'+op.label+'</span><div style="font-size:10px;color:var(--tx3)">'+fmtD(op.date)+'</div></div><div style="display:flex;align-items:center;gap:6px"><span style="font-family:monospace;font-size:12px;font-weight:600;color:'+(op.type==='VER'?'var(--ac3)':'var(--ac4)')+'">'+op.sign+fmtF(op.mont)+'</span>'+(op.type==='ENL'&&op.realIdx>=0?'<button class="btn bsm" style="background:var(--s3);color:var(--ac2);border:1px solid var(--bd);padding:3px 8px" onclick="cm('m-fiche');openEditEnl('+op.realIdx+')">Mod.</button>':'')+'</div></div>';}).join('');
+    h+=ops.map(function(op){return '<div class="dr"><div><span class="bdg '+(op.type==='VER'?'bin':'bout')+'">'+op.type+'</span> <span style="font-size:11px">'+op.label+'</span><div style="font-size:10px;color:var(--tx3)">'+fmtD(op.date)+'</div></div><span style="font-family:monospace;font-size:12px;font-weight:600;color:'+(op.type==='VER'?'var(--ac3)':'var(--ac4)')+'">'+op.sign+fmtF(op.mont)+'</span></div>';}).join('');
   }
   window._ficheId=cid;
   document.getElementById('fiche-body').innerHTML=h;
@@ -583,26 +611,7 @@ function printFiche(){
   var w=window.open('','_blank');
   var css='body{font-family:Arial,sans-serif;padding:24px;color:#111;font-size:13px;max-width:600px;margin:0 auto}h2{font-size:16px;margin-bottom:8px}.dr{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}.bdg{font-size:10px;padding:2px 6px;border-radius:10px;background:#eee}.bin{background:#e8f5e9;color:#2e7d32}.bout{background:#ffebee;color:#c62828}@media print{button{display:none}}';
   var dateStr=new Date().toLocaleDateString('fr-FR');
-  var content='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fiche '+c.nom+'</title><style>'+css+'</style></head><body><h2>Fiche Client: '+c.nom+'</h2><p style="font-size:11px;color:#888">Genere le '+dateStr+' — Depot DAKAR 3</p>'+body+'
-<div class="ov" id="m-edit-enl"><div class="modal">
-  <div class="mhd"></div>
-  <div class="mth"><div class="mtx">Modifier l enlevement</div><button class="mcl" onclick="cm('m-edit-enl')">X</button></div>
-  <input type="hidden" id="edit-enl-id">
-  <div class="fg"><label class="fl">Client</label><input type="text" class="fi" id="edit-enl-cli" readonly style="color:var(--ac);background:var(--s3)"></div>
-  <div class="fg"><label class="fl">Type de farine</label><select class="fsel" id="edit-enl-f"><option value="FIRST CHOICE">FARINE FIRST CHOICE</option><option value="TERANGA">FARINE TERANGA</option><option value="PATISSIERE">FARINE PATISSIERE</option><option value="BEIGNET">FARINE BEIGNET</option></select></div>
-  <div class="g2">
-    <div class="fg"><label class="fl">Nombre de sacs</label><input type="number" class="fi" id="edit-enl-q" min="1" inputmode="numeric"></div>
-    <div class="fg"><label class="fl">Montant facture (F CFA)</label><input type="number" class="fi" id="edit-enl-m" min="0" inputmode="numeric"></div>
-  </div>
-  <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="edit-enl-d"></div>
-  <div class="fg"><label class="fl">Note</label><input type="text" class="fi" id="edit-enl-n" placeholder="Remarque..."></div>
-  <div style="display:flex;gap:8px;margin-top:4px">
-    <button class="btn bp" style="flex:1" onclick="svEditEnl()">Enregistrer</button>
-    <button class="btn bd2" onclick="delEnl()">Supprimer</button>
-  </div>
-</div></div>
-
-</body></html>';
+  var content='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fiche '+c.nom+'</title><style>'+css+'</style></head><body><h2>Fiche Client: '+c.nom+'</h2><p style="font-size:11px;color:#888">Genere le '+dateStr+' — Depot DAKAR 3</p>'+body+'</body></html>';
   w.document.write(content);w.document.close();setTimeout(function(){w.print();},500);
 }
 
@@ -677,26 +686,7 @@ function printRap(){
   var w=window.open('','_blank');
   var css='body{font-family:Arial,sans-serif;padding:24px;color:#111;font-size:13px;max-width:600px;margin:0 auto}h2{font-size:16px;margin-bottom:8px}.dr{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}.bdg{font-size:10px;padding:2px 6px;border-radius:10px;background:#eee}.bin{background:#e8f5e9;color:#2e7d32}.bout{background:#ffebee;color:#c62828}@media print{button{display:none}}';
   var dateStr=new Date().toLocaleDateString('fr-FR');
-  var content='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+tit+'</title><style>'+css+'</style></head><body><h2>'+tit+'</h2><p style="font-size:11px;color:#888">Genere le '+dateStr+' — Depot DAKAR 3</p>'+body+'
-<div class="ov" id="m-edit-enl"><div class="modal">
-  <div class="mhd"></div>
-  <div class="mth"><div class="mtx">Modifier l enlevement</div><button class="mcl" onclick="cm('m-edit-enl')">X</button></div>
-  <input type="hidden" id="edit-enl-id">
-  <div class="fg"><label class="fl">Client</label><input type="text" class="fi" id="edit-enl-cli" readonly style="color:var(--ac);background:var(--s3)"></div>
-  <div class="fg"><label class="fl">Type de farine</label><select class="fsel" id="edit-enl-f"><option value="FIRST CHOICE">FARINE FIRST CHOICE</option><option value="TERANGA">FARINE TERANGA</option><option value="PATISSIERE">FARINE PATISSIERE</option><option value="BEIGNET">FARINE BEIGNET</option></select></div>
-  <div class="g2">
-    <div class="fg"><label class="fl">Nombre de sacs</label><input type="number" class="fi" id="edit-enl-q" min="1" inputmode="numeric"></div>
-    <div class="fg"><label class="fl">Montant facture (F CFA)</label><input type="number" class="fi" id="edit-enl-m" min="0" inputmode="numeric"></div>
-  </div>
-  <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="edit-enl-d"></div>
-  <div class="fg"><label class="fl">Note</label><input type="text" class="fi" id="edit-enl-n" placeholder="Remarque..."></div>
-  <div style="display:flex;gap:8px;margin-top:4px">
-    <button class="btn bp" style="flex:1" onclick="svEditEnl()">Enregistrer</button>
-    <button class="btn bd2" onclick="delEnl()">Supprimer</button>
-  </div>
-</div></div>
-
-</body></html>';
+  var content='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+tit+'</title><style>'+css+'</style></head><body><h2>'+tit+'</h2><p style="font-size:11px;color:#888">Genere le '+dateStr+' — Depot DAKAR 3</p>'+body+'</body></html>';
   w.document.write(content);w.document.close();setTimeout(function(){w.print();},500);
 }
 
@@ -723,60 +713,121 @@ function expCSV(){
 
 // SAVE ACTIONS
 function svAppro(){var q=parseInt(document.getElementById('a-q').value)||0;var p=parseFloat(document.getElementById('a-p').value)||0;if(!q){tst('Quantite requise','w');return;}D.appros.push({farine:document.getElementById('a-f').value,qty:q,prix:p,fournisseur:document.getElementById('a-4').value,date:document.getElementById('a-d').value||td(),note:document.getElementById('a-n').value});sv();cm('m-appro');['a-q','a-p','a-4','a-n'].forEach(function(id){document.getElementById(id).value='';});tst('Approvisionnement enregistre');rf();}
-function svSort(){var q=parseInt(document.getElementById('s-q').value)||0;var f=document.getElementById('s-f').value;if(!q){tst('Quantite requise','w');return;}if(q>gStk(f)){tst('Stock insuffisant!','w');return;}D.sorties.push({farine:f,qty:q,client:document.getElementById('s-c').value,date:document.getElementById('s-d').value||td(),note:document.getElementById('s-n').value});sv();cm('m-sort');['s-q','s-c','s-n'].forEach(function(id){document.getElementById(id).value='';});tst('Sortie enregistree');rf();}
+function svSort(){var q=parseInt(document.getElementById('s-q').value)||0;var f=document.getElementById('s-f').value;if(!q){tst('Quantite requise','w');return;}/* stock check removed — enlèvement autorisé même si stock bas */D.sorties.push({farine:f,qty:q,client:document.getElementById('s-c').value,date:document.getElementById('s-d').value||td(),note:document.getElementById('s-n').value});sv();cm('m-sort');['s-q','s-c','s-n'].forEach(function(id){document.getElementById(id).value='';});tst('Sortie enregistree');rf();}
 function svDep(){var m=parseFloat(document.getElementById('dp-m').value)||0;if(!m){tst('Montant requis','w');return;}D.depenses.push({cat:document.getElementById('dp-c').value,montant:m,desc:document.getElementById('dp-x').value,date:document.getElementById('dp-d').value||td()});sv();cm('m-dep');['dp-m','dp-x'].forEach(function(id){document.getElementById(id).value='';});tst('Depense enregistree');rf();}
 function svVir(){var m=parseFloat(document.getElementById('vr-m').value)||0;if(!m){tst('Montant requis','w');return;}D.virements.push({montant:m,date:document.getElementById('vr-d').value||td(),note:document.getElementById('vr-n').value});sv();cm('m-vir');['vr-m','vr-n'].forEach(function(id){document.getElementById(id).value='';});tst('Virement enregistre');rf();}
 function svNcli(){var n=document.getElementById('nc-n').value.trim();if(!n){tst('Nom requis','w');return;}if(D.clients.find(function(c){return c.nom.toLowerCase()===n.toLowerCase();})){tst('Client existe deja','w');return;}var id='c_'+Date.now();D.clients.push({id:id,nom:n,tel:document.getElementById('nc-t').value.trim(),soldeInitial:parseFloat(document.getElementById('nc-s').value)||0,limiteCredit:parseFloat(document.getElementById('nc-l').value)||0,note:document.getElementById('nc-x').value.trim(),dateCreation:td()});sv();cm('m-ncli');['nc-n','nc-t','nc-x'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('nc-s').value='0';document.getElementById('nc-l').value='0';tst('Client ajoute');rf();}
 function svVer(){var cid=document.getElementById('vr-c').value;var m=parseFloat(document.getElementById('vr-mt').value)||0;if(!cid||!m){tst('Client et montant requis','w');return;}D.vers_cli.push({clientId:cid,montant:m,note:document.getElementById('vr-nt').value,date:document.getElementById('vr-dt').value||td()});sv();cm('m-ver');document.getElementById('vr-mt').value='';document.getElementById('vr-nt').value='';tst('Versement enregistre');rf();}
-function svEnl(){var cid=document.getElementById('en-c').value;var f=document.getElementById('en-f').value;var q=parseInt(document.getElementById('en-q').value)||0;var m=parseFloat(document.getElementById('en-m').value)||0;var dt=document.getElementById('en-d').value||td();if(!q){tst('Quantite requise','w');return;}if(q>gStk(f)){if(!confirm('Stock insuffisant ('+gStk(f)+' sacs dispo). Continuer quand meme?'))return;}var cli=D.clients.find(function(c){return c.id===cid;});var lim=cli?cli.limiteCredit||0:0;if(lim>0&&m>0){var solAp=gSol(cid)+m;if(solAp>lim){if(!confirm('Limite credit depassee ('+fmtF(lim)+'). Continuer quand meme?'))return;}}D.sorties.push({id:'e_'+Date.now(),farine:f,qty:q,montant:m,clientId:cid,client:cli?cli.nom:'',date:dt,note:document.getElementById('en-n').value});sv();cm('m-enl');['en-q','en-m','en-n'].forEach(function(id){document.getElementById(id).value='';});tst('Enlevement enregistre');rf();}
+function svEnl(){var cid=document.getElementById('en-c').value;var f=document.getElementById('en-f').value;var q=parseInt(document.getElementById('en-q').value)||0;var m=parseFloat(document.getElementById('en-m').value)||0;var dt=document.getElementById('en-d').value||td();if(!q){tst('Quantite requise','w');return;}if(!m){tst('Montant facture requis','w');return;}/* stock check removed — enlèvement autorisé même si stock bas */var cli=D.clients.find(function(c){return c.id===cid;});D.sorties.push({farine:f,qty:q,montant:m,clientId:cid,client:cli?cli.nom:'',date:dt,note:document.getElementById('en-n').value});sv();cm('m-enl');['en-q','en-m','en-n'].forEach(function(id){document.getElementById(id).value='';});tst('Enlevement enregistre');rf();}
 
-function svEditEnl(){
-  var idx=parseInt(document.getElementById('edit-enl-id').value);
-  var s=D.sorties[idx];if(!s)return;
-  s.farine=document.getElementById('edit-enl-f').value;
-  s.qty=parseInt(document.getElementById('edit-enl-q').value)||s.qty;
-  s.montant=parseFloat(document.getElementById('edit-enl-m').value)||0;
-  s.date=document.getElementById('edit-enl-d').value||s.date;
-  s.note=document.getElementById('edit-enl-n').value;
-  sv();cm('m-edit-enl');tst('Enlevement modifie');rf();
+// DELETE
+function delD(i){if(!confirm('Supprimer?'))return;D.depenses.splice(i,1);sv();rf();tst('Supprime');}
+function delV(i){if(!confirm('Supprimer?'))return;D.virements.splice(i,1);sv();rf();tst('Supprime');}
+function delVC(i){if(!confirm('Supprimer?'))return;D.vers_cli.splice(i,1);sv();rf();tst('Supprime');}
+function delCli(cid){if(!confirm('Supprimer ce client et son historique?'))return;D.clients=D.clients.filter(function(c){return c.id!==cid;});D.sorties=D.sorties.filter(function(s){return s.clientId!==cid;});D.vers_cli=D.vers_cli.filter(function(v){return v.clientId!==cid;});sv();cm('m-fiche');rf();tst('Client supprime');}
+
+// MISC
+function updStk(){var f=document.getElementById('s-f').value;var el=document.getElementById('s-si');if(el)el.textContent='Stock disponible: '+gStk(f)+' sacs';}
+function updSeuil(k,v){D.seuils[k]=parseInt(v)||0;sv();}
+function updVerPrev(){var cid=document.getElementById('vr-c').value;var m=parseFloat(document.getElementById('vr-mt').value)||0;var sol=gSol(cid);var el=document.getElementById('vr-cur');var el2=document.getElementById('vr-pv');if(el)el.textContent='Solde actuel: '+fmtF(sol)+(sol>0?' (debiteur)':' (solde)');if(el2&&m>0){var a=sol-m;el2.textContent='Solde apres: '+fmtF(Math.abs(a))+(a>0?' — reste a payer':a<0?' — credit client':' — compte solde');el2.style.color=a<=0?'var(--ac3)':'var(--ac4)';}else if(el2){el2.textContent='';}}
+function updEnlSol(){var cid=document.getElementById('en-c').value;var sol=gSol(cid);var el=document.getElementById('en-sol');if(el)el.textContent='Solde actuel: '+fmtF(sol)+(sol>0?' (debiteur)':' (solde)');updEnlPrev();}
+function updEnlStk(){var f=document.getElementById('en-f').value;var el=document.getElementById('en-si');if(el)el.textContent='Stock disponible: '+gStk(f)+' sacs';}
+function updEnlPrev(){var cid=document.getElementById('en-c').value;var m=parseFloat(document.getElementById('en-m').value)||0;var sol=gSol(cid);var c=D.clients.find(function(x){return x.id===cid;});var lim=c?c.limiteCredit||0:0;var el=document.getElementById('en-pv');if(el&&m>0){var a=sol+m;var msg='Solde apres: '+fmtF(Math.abs(a))+(a>0?' — doit payer':a<0?' — credit':' — solde');if(lim>0&&a>lim)msg+=' (limite '+fmtF(lim)+' depassee)';el.textContent=msg;el.style.color=a>0?'var(--ac4)':'var(--ac3)';}else if(el){el.textContent='';}}
+function omVer(cid){fillCliSel('vr-c',cid);updVerPrev();document.getElementById('vr-dt').value=td();om('m-ver');}
+function omEnl(cid){fillCliSel('en-c',cid);updEnlSol();updEnlStk();document.getElementById('en-d').value=td();om('m-enl');}
+
+// TABS
+function stab(t,btn){['liste','client','farine'].forEach(function(x){document.getElementById('st-'+x).style.display='none';});document.getElementById('st-'+t).style.display='block';document.querySelectorAll('#pg-sort .tb').forEach(function(b){b.classList.remove('act');});btn.classList.add('act');if(t==='client'){rfCli();}if(t==='farine'){rfFar();}}
+function dtab(t,btn){['apercu','virements','charges','mensuel'].forEach(function(x){document.getElementById('dt-'+x).style.display='none';});document.getElementById('dt-'+t).style.display='block';document.querySelectorAll('#pg-dep .tb').forEach(function(b){b.classList.remove('act');});btn.classList.add('act');if(t==='mensuel')rfMen();if(t==='apercu')rfAp();if(t==='virements')rfVir();if(t==='charges')rfDep('all');}
+function ctab(t,btn){['liste','enl','vers'].forEach(function(x){var el=document.getElementById('ct-'+x);if(el)el.style.display='none';});var target=document.getElementById('ct-'+(t==='enlevements'?'enl':t));if(target)target.style.display='block';document.querySelectorAll('#pg-cli .tb').forEach(function(b){b.classList.remove('act');});btn.classList.add('act');if(t==='vers')rfVers();if(t==='liste')rfCliList('all');if(t==='enlevements')rfEnlTable('all');}
+
+// FILTERS
+function flt(tp,f,btn){var pid=tp==='appro'?'pg-appro':'st-liste';document.querySelectorAll('#'+pid+' .fscr .chip').forEach(function(c){c.classList.remove('act');});btn.classList.add('act');if(tp==='appro')rfAppro(f);else rfSort(f);}
+function fltD(f,btn){document.querySelectorAll('#dt-charges .fscr .chip').forEach(function(c){c.classList.remove('act');});btn.classList.add('act');rfDep(f);}
+function fltC(f,btn){document.querySelectorAll('#ct-liste .fscr .chip').forEach(function(c){c.classList.remove('act');});btn.classList.add('act');rfCliList(f);}
+
+
+// ENLEVEMENTS TABLE (tous clients)
+function rfEnlTable(f){
+  window._eflt=f;
+  var el=document.getElementById('tb-enl');if(!el)return;
+  var rows=D.sorties.filter(function(s){return f==='all'||s.farine===f;}).sort(function(a,b){return b.date.localeCompare(a.date);});
+  if(!rows.length){el.innerHTML='<tr><td colspan="6" class="emp">Aucun enlevement</td></tr>';return;}
+  el.innerHTML=rows.map(function(s,i){
+    var realIdx=D.sorties.indexOf(s);
+    return '<tr>'
+      +'<td style="font-size:10px;font-family:monospace">'+fmtD(s.date)+'</td>'
+      +'<td style="font-size:11px;font-weight:600">'+(s.client||'—')+'</td>'
+      +'<td><span class="bdg '+bdg(s.farine)+' bdg">'+s.farine+'</span></td>'
+      +'<td style="color:var(--ac4);font-weight:600">'+s.qty+'</td>'
+      +'<td style="color:var(--ac3);font-family:monospace;font-size:10px">'+(s.montant?fmtF(s.montant):'—')+'</td>'
+      +'<td style="display:flex;gap:4px">'
+      +'<button class="btn bi bsm" onclick="openEditEnl('+realIdx+')">Modifier</button>'
+      +'<button class="btn bd2 bsm" onclick="delEnl('+realIdx+')">X</button>'
+      +'</td>'
+      +'</tr>';
+  }).join('');
 }
-function delEnl(){
-  var idx=parseInt(document.getElementById('edit-enl-id').value);
-  if(!confirm('Supprimer cet enlevement?'))return;
-  D.sorties.splice(idx,1);sv();cm('m-edit-enl');tst('Enlevement supprime');rf();
+
+function fltEnl(f,btn){
+  document.querySelectorAll('#ct-enl .fscr .chip').forEach(function(c){c.classList.remove('act');});
+  btn.classList.add('act');
+  rfEnlTable(f);
 }
 
 function openEditEnl(idx){
   var s=D.sorties[idx];if(!s)return;
-  var cli=D.clients.find(function(c){return c.id===s.clientId;});
-  document.getElementById('edit-enl-id').value=idx;
-  document.getElementById('edit-enl-cli').value=cli?cli.nom:(s.client||'Inconnu');
+  document.getElementById('edit-enl-idx').value=idx;
+  fillCliSel('edit-enl-c',s.clientId||'');
   document.getElementById('edit-enl-f').value=s.farine;
   document.getElementById('edit-enl-q').value=s.qty;
-  document.getElementById('edit-enl-m').value=s.montant||0;
+  document.getElementById('edit-enl-m').value=s.montant||'';
   document.getElementById('edit-enl-d').value=s.date;
   document.getElementById('edit-enl-n').value=s.note||'';
   om('m-edit-enl');
 }
+
+function svEditEnl(){
+  var idx=parseInt(document.getElementById('edit-enl-idx').value);
+  var q=parseInt(document.getElementById('edit-enl-q').value)||0;
+  var m=parseFloat(document.getElementById('edit-enl-m').value)||0;
+  var cid=document.getElementById('edit-enl-c').value;
+  var f=document.getElementById('edit-enl-f').value;
+  if(!q){tst('Quantite requise','w');return;}
+  var cli=D.clients.find(function(c){return c.id===cid;});
+  D.sorties[idx]={
+    farine:f,qty:q,montant:m,
+    clientId:cid,
+    client:cli?cli.nom:'',
+    date:document.getElementById('edit-enl-d').value||td(),
+    note:document.getElementById('edit-enl-n').value
+  };
+  sv();cm('m-edit-enl');
+  tst('Enlevement modifie');
+  rf();
+  rfEnlTable(window._eflt||'all');
+}
+
+function delEnl(idx){
+  if(!confirm('Supprimer cet enlevement?'))return;
+  D.sorties.splice(idx,1);sv();rf();rfEnlTable(window._eflt||'all');tst('Supprime');
+}
+
+// TOAST
+var _tt;
+function tst(msg,tp){var el=document.querySelector('.tst');if(el)el.remove();clearTimeout(_tt);el=document.createElement('div');el.className='tst';el.style.borderLeftColor=tp==='w'?'var(--ac4)':'var(--ac3)';el.textContent=msg;document.body.appendChild(el);_tt=setTimeout(function(){el.remove();},3000);}
+
+// INIT
+var _dn=new Date();
+document.getElementById('hdate').textContent=_dn.toLocaleDateString('fr-FR',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+document.querySelectorAll('input[type=date]').forEach(function(i){i.value=td();});
+var _hm=document.getElementById('hist-mois');if(_hm){_hm.value=cm2();_hm.addEventListener('change',rfHist);}
+var _dm=document.getElementById('dep-mois');if(_dm)_dm.value=cm2();
+var _mm=document.getElementById('men-mois');if(_mm)_mm.value=cm2();
+var _cm=document.getElementById('cl-mois');if(_cm){_cm.value=cm2();_cm.addEventListener('change',rfCli);}
+var _fm=document.getElementById('fa-mois');if(_fm){_fm.value=cm2();_fm.addEventListener('change',rfFar);}
+updStk();
+rf();
 </script>
-
-<div class="ov" id="m-edit-enl"><div class="modal">
-  <div class="mhd"></div>
-  <div class="mth"><div class="mtx">Modifier l enlevement</div><button class="mcl" onclick="cm('m-edit-enl')">X</button></div>
-  <input type="hidden" id="edit-enl-id">
-  <div class="fg"><label class="fl">Client</label><input type="text" class="fi" id="edit-enl-cli" readonly style="color:var(--ac);background:var(--s3)"></div>
-  <div class="fg"><label class="fl">Type de farine</label><select class="fsel" id="edit-enl-f"><option value="FIRST CHOICE">FARINE FIRST CHOICE</option><option value="TERANGA">FARINE TERANGA</option><option value="PATISSIERE">FARINE PATISSIERE</option><option value="BEIGNET">FARINE BEIGNET</option></select></div>
-  <div class="g2">
-    <div class="fg"><label class="fl">Nombre de sacs</label><input type="number" class="fi" id="edit-enl-q" min="1" inputmode="numeric"></div>
-    <div class="fg"><label class="fl">Montant facture (F CFA)</label><input type="number" class="fi" id="edit-enl-m" min="0" inputmode="numeric"></div>
-  </div>
-  <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="edit-enl-d"></div>
-  <div class="fg"><label class="fl">Note</label><input type="text" class="fi" id="edit-enl-n" placeholder="Remarque..."></div>
-  <div style="display:flex;gap:8px;margin-top:4px">
-    <button class="btn bp" style="flex:1" onclick="svEditEnl()">Enregistrer</button>
-    <button class="btn bd2" onclick="delEnl()">Supprimer</button>
-  </div>
-</div></div>
-
 </body>
 </html>
