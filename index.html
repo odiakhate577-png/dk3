@@ -739,7 +739,18 @@ function omEnl(cid){fillCliSel('en-c',cid);updEnlSol();updEnlStk();document.getE
 // TABS
 function stab(t,btn){['liste','client','farine'].forEach(function(x){document.getElementById('st-'+x).style.display='none';});document.getElementById('st-'+t).style.display='block';document.querySelectorAll('#pg-sort .tb').forEach(function(b){b.classList.remove('act');});btn.classList.add('act');if(t==='client'){rfCli();}if(t==='farine'){rfFar();}}
 function dtab(t,btn){['apercu','virements','charges','mensuel'].forEach(function(x){document.getElementById('dt-'+x).style.display='none';});document.getElementById('dt-'+t).style.display='block';document.querySelectorAll('#pg-dep .tb').forEach(function(b){b.classList.remove('act');});btn.classList.add('act');if(t==='mensuel')rfMen();if(t==='apercu')rfAp();if(t==='virements')rfVir();if(t==='charges')rfDep('all');}
-function ctab(t,btn){['liste','enl','vers'].forEach(function(x){var el=document.getElementById('ct-'+x);if(el)el.style.display='none';});var target=document.getElementById('ct-'+(t==='enlevements'?'enl':t));if(target)target.style.display='block';document.querySelectorAll('#pg-cli .tb').forEach(function(b){b.classList.remove('act');});btn.classList.add('act');if(t==='vers')rfVers();if(t==='liste')rfCliList('all');if(t==='enlevements')rfEnlTable('all');}
+function ctab(t,btn){
+  ['liste','enl','vers'].forEach(function(x){var el=document.getElementById('ct-'+x);if(el)el.style.display='none';});
+  var map={'liste':'liste','enlevements':'enl','versements':'vers'};
+  var tid=map[t]||t;
+  var target=document.getElementById('ct-'+tid);
+  if(target)target.style.display='block';
+  document.querySelectorAll('#pg-cli .tb').forEach(function(b){b.classList.remove('act');});
+  btn.classList.add('act');
+  if(t==='versements')rfVers();
+  if(t==='liste')rfCliList('all');
+  if(t==='enlevements')rfEnlTable('all');
+}
 
 // FILTERS
 function flt(tp,f,btn){var pid=tp==='appro'?'pg-appro':'st-liste';document.querySelectorAll('#'+pid+' .fscr .chip').forEach(function(c){c.classList.remove('act');});btn.classList.add('act');if(tp==='appro')rfAppro(f);else rfSort(f);}
