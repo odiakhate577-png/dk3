@@ -240,6 +240,10 @@ tr:last-child td{border-bottom:none}
     <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Client</th><th>Farine</th><th>Sacs</th><th>Montant</th><th></th></tr></thead><tbody id="tb-enl"></tbody></table></div></div>
   </div>
   <div id="ct-liste">
+    <div style="position:relative;margin-bottom:10px">
+      <input type="text" id="cli-search" class="fi" placeholder="Rechercher un client..." oninput="rfCliList(window._cflt||'all')" style="padding-left:36px">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none">&#128269;</span>
+    </div>
     <div class="fscr">
       <button class="chip act" onclick="fltC('all',this)">Tous</button>
       <button class="chip" onclick="fltC('deb',this)">Debiteurs</button>
@@ -355,7 +359,14 @@ tr:last-child td{border-bottom:none}
   <div id="en-sol" style="font-size:12px;padding:7px 10px;background:rgba(245,166,35,.08);border-radius:6px;margin-bottom:10px;color:var(--ac)"></div>
   <div class="fg"><label class="fl">Type de farine</label><select class="fsel" id="en-f" onchange="updEnlStk()"><option value="FIRST CHOICE">FARINE FIRST CHOICE</option><option value="TERANGA">FARINE TERANGA</option><option value="PATISSIERE">FARINE PATISSIERE</option><option value="BEIGNET">FARINE BEIGNET</option></select></div>
   <div id="en-si" style="font-size:11px;color:var(--ac);margin-bottom:10px;padding:5px 10px;background:rgba(245,166,35,.06);border-radius:6px"></div>
-  <div class="g2"><div class="fg"><label class="fl">Nombre de sacs</label><input type="number" class="fi" id="en-q" min="1" placeholder="10" inputmode="numeric"></div><div class="fg"><label class="fl">Montant facture (F CFA)</label><input type="number" class="fi" id="en-m" min="0" placeholder="170000" inputmode="numeric" oninput="updEnlPrev()"></div></div>
+  <div class="g2"><div class="fg"><label class="fl">Nombre de sacs</label><input type="number" class="fi" id="en-q" min="1" placeholder="10" inputmode="numeric" oninput="calcEnlTotal()"></div><div class="fg"><label class="fl">Prix unitaire/sac (F CFA)</label><input type="number" class="fi" id="en-pu" min="0" placeholder="17000" inputmode="numeric" oninput="calcEnlTotal()"></div></div>
+  <div class="fg">
+    <label class="fl">Montant total (F CFA)</label>
+    <div style="position:relative">
+      <input type="number" class="fi" id="en-m" min="0" placeholder="Calcul auto ou saisie manuelle" inputmode="numeric" oninput="updEnlPrev()" style="padding-right:90px">
+      <span id="en-auto-tag" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--ac3);display:none">AUTO</span>
+    </div>
+  </div>
   <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="en-d"></div>
   <div class="fg"><label class="fl">Note</label><input type="text" class="fi" id="en-n" placeholder="Remarque..."></div>
   <div id="en-pv" style="font-size:13px;font-weight:600;padding:10px;background:var(--s2);border-radius:8px;margin-bottom:12px;text-align:center"></div>
@@ -380,9 +391,10 @@ tr:last-child td{border-bottom:none}
   <div class="fg"><label class="fl">Client</label><select class="fsel" id="edit-enl-c"></select></div>
   <div class="fg"><label class="fl">Type de farine</label><select class="fsel" id="edit-enl-f"><option value="FIRST CHOICE">FARINE FIRST CHOICE</option><option value="TERANGA">FARINE TERANGA</option><option value="PATISSIERE">FARINE PATISSIERE</option><option value="BEIGNET">FARINE BEIGNET</option></select></div>
   <div class="g2">
-    <div class="fg"><label class="fl">Nombre de sacs</label><input type="number" class="fi" id="edit-enl-q" min="1" inputmode="numeric"></div>
-    <div class="fg"><label class="fl">Montant facture (F CFA)</label><input type="number" class="fi" id="edit-enl-m" min="0" inputmode="numeric"></div>
+    <div class="fg"><label class="fl">Nombre de sacs</label><input type="number" class="fi" id="edit-enl-q" min="1" inputmode="numeric" oninput="calcEditEnlTotal()"></div>
+    <div class="fg"><label class="fl">Prix unitaire/sac (F CFA)</label><input type="number" class="fi" id="edit-enl-pu" min="0" inputmode="numeric" oninput="calcEditEnlTotal()"></div>
   </div>
+  <div class="fg"><label class="fl">Montant total (F CFA)</label><input type="number" class="fi" id="edit-enl-m" min="0" inputmode="numeric"></div>
   <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="edit-enl-d"></div>
   <div class="fg"><label class="fl">Note</label><input type="text" class="fi" id="edit-enl-n" placeholder="Remarque..."></div>
   <button class="btn bp" style="width:100%;margin-top:4px" onclick="svEditEnl()">Enregistrer les modifications</button>
@@ -579,7 +591,7 @@ function rf(){
 }
 
 // APPRO TABLE
-function rfAppro(f){window._aflt=f;var el=document.getElementById('tb-appro');if(!el)return;var rows=D.appros.filter(function(a){return f==='all'||a.farine===f;}).sort(function(a,b){return b.date.localeCompare(a.date);});el.innerHTML=rows.length?rows.map(function(a){var ri=D.appros.indexOf(a);return '<tr><td style="font-size:10px;font-family:monospace">'+fmtD(a.date)+'</td><td><span class="bdg '+bdg(a.farine)+' bdg">'+a.farine+'</span></td><td style="font-weight:600">'+a.qty+'</td><td style="font-size:10px">'+( a.prix?fmtF(a.prix):'—')+'</td><td style="color:var(--ac3);font-size:10px">'+( a.prix?fmtF(a.qty*a.prix):'—')+'</td><td style="color:var(--tx2);font-size:10px">'+(a.fournisseur||'—')+'</td><td><button class="btn bi bsm" onclick="openEditAppro('+ri+')">Modifier</button></td></tr>';}).join(''):'<tr><td colspan="7" class="emp">Aucun approvisionnement</td></tr>';}
+function rfAppro(f){window._aflt=f;var el=document.getElementById('tb-appro');if(!el)return;var rows=D.appros.filter(function(a){return f==='all'||a.farine===f;}).sort(function(a,b){return b.date.localeCompare(a.date);});el.innerHTML=rows.length?rows.map(function(a){var ri=D.appros.indexOf(a);return '<tr><td style="font-size:10px;font-family:monospace">'+fmtD(a.date)+'</td><td><span class="bdg '+bdg(a.farine)+' bdg">'+a.farine+'</span></td><td style="font-weight:600">'+a.qty+'</td><td style="font-size:10px">'+( a.prix?fmtF(a.prix):'—')+'</td><td style="color:var(--ac3);font-size:10px">'+( a.prix?fmtF(a.qty*a.prix):'—')+'</td><td style="color:var(--tx2);font-size:10px">'+(a.fournisseur||'—')+'</td><td style="display:flex;gap:4px"><button class="btn bi bsm" onclick="openEditAppro('+ri+')">Modifier</button><button class="btn bd2 bsm" onclick="delAppro('+ri+')">X</button></td></tr>';}).join(''):'<tr><td colspan="7" class="emp">Aucun approvisionnement</td></tr>';}
 
 // SORT TABLE
 function rfSort(f){window._sflt=f;var el=document.getElementById('tb-sort');if(!el)return;var rows=D.sorties.filter(function(a){return f==='all'||a.farine===f;}).sort(function(a,b){return b.date.localeCompare(a.date);});el.innerHTML=rows.length?rows.map(function(a){return '<tr><td style="font-size:10px;font-family:monospace">'+fmtD(a.date)+'</td><td><span class="bdg '+bdg(a.farine)+' bdg">'+a.farine+'</span></td><td style="color:var(--ac4);font-weight:600">'+a.qty+'</td><td style="font-size:11px">'+(a.client||'—')+'</td><td style="font-size:10px;color:var(--ac3)">'+(a.montant?fmtF(a.montant):'—')+'</td></tr>';}).join(''):'<tr><td colspan="5" class="emp">Aucune sortie</td></tr>';}
@@ -624,6 +636,11 @@ function rfCliList(f){
   var clis=[].concat(D.clients);
   if(f==='deb')clis=clis.filter(function(c){return gSol(c.id)>0;});
   if(f==='ok')clis=clis.filter(function(c){return gSol(c.id)<=0;});
+  var srch=document.getElementById('cli-search');
+  if(srch&&srch.value.trim()){
+    var q=srch.value.trim().toLowerCase();
+    clis=clis.filter(function(c){return c.nom.toLowerCase().indexOf(q)>=0||(c.tel&&c.tel.indexOf(q)>=0);});
+  }
   clis.sort(function(a,b){return a.nom.localeCompare(b.nom);});
   el.innerHTML=clis.map(function(c){
     var sol=gSol(c.id);var deb=sol>0;
@@ -804,7 +821,7 @@ function svDep(){var m=parseFloat(document.getElementById('dp-m').value)||0;if(!
 function svVir(){var m=parseFloat(document.getElementById('vr-m').value)||0;if(!m){tst('Montant requis','w');return;}D.virements.push({montant:m,date:document.getElementById('vr-d').value||td(),note:document.getElementById('vr-n').value});sv();cm('m-vir');['vr-m','vr-n'].forEach(function(id){document.getElementById(id).value='';});tst('Virement enregistre');rf();}
 function svNcli(){var n=document.getElementById('nc-n').value.trim();if(!n){tst('Nom requis','w');return;}if(D.clients.find(function(c){return c.nom.toLowerCase()===n.toLowerCase();})){tst('Client existe deja','w');return;}var id='c_'+Date.now();D.clients.push({id:id,nom:n,tel:document.getElementById('nc-t').value.trim(),soldeInitial:parseFloat(document.getElementById('nc-s').value)||0,limiteCredit:parseFloat(document.getElementById('nc-l').value)||0,note:document.getElementById('nc-x').value.trim(),dateCreation:td()});sv();cm('m-ncli');['nc-n','nc-t','nc-x'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('nc-s').value='0';document.getElementById('nc-l').value='0';tst('Client ajoute');rf();}
 function svVer(){var cid=window._verCid||document.getElementById('vr-c').value;var m=parseFloat(document.getElementById('vr-mt').value)||0;if(!cid||!m){tst('Client et montant requis','w');return;}D.vers_cli.push({clientId:cid,montant:m,note:document.getElementById('vr-nt').value,date:document.getElementById('vr-dt').value||td()});sv();cm('m-ver');document.getElementById('vr-mt').value='';document.getElementById('vr-nt').value='';window._verCid=null;tst('Versement enregistre');rf();}
-function svEnl(){var cid=window._enlCid||document.getElementById('en-c').value;var f=document.getElementById('en-f').value;var q=parseInt(document.getElementById('en-q').value)||0;var m=parseFloat(document.getElementById('en-m').value)||0;var dt=document.getElementById('en-d').value||td();if(!q){tst('Quantite requise','w');return;}if(!m){tst('Montant facture requis','w');return;}/* stock check removed — enlèvement autorisé même si stock bas */var cli=D.clients.find(function(c){return c.id===cid;});D.sorties.push({farine:f,qty:q,montant:m,clientId:cid,client:cli?cli.nom:'',date:dt,note:document.getElementById('en-n').value});sv();cm('m-enl');['en-q','en-m','en-n'].forEach(function(id){document.getElementById(id).value='';});window._enlCid=null;tst('Enlevement enregistre');rf();}
+function svEnl(){var cid=window._enlCid||document.getElementById('en-c').value;var f=document.getElementById('en-f').value;var q=parseInt(document.getElementById('en-q').value)||0;var m=parseFloat(document.getElementById('en-m').value)||0;var dt=document.getElementById('en-d').value||td();if(!q){tst('Quantite requise','w');return;}if(!m){tst('Montant facture requis','w');return;}/* stock check removed — enlèvement autorisé même si stock bas */var cli=D.clients.find(function(c){return c.id===cid;});D.sorties.push({farine:f,qty:q,montant:m,clientId:cid,client:cli?cli.nom:'',date:dt,note:document.getElementById('en-n').value});sv();cm('m-enl');['en-q','en-m','en-n','en-pu'].forEach(function(id){document.getElementById(id).value='';});window._enlCid=null;tst('Enlevement enregistre');rf();}
 
 // DELETE
 function delD(i){if(!confirm('Supprimer?'))return;D.depenses.splice(i,1);sv();rf();tst('Supprime');}
@@ -938,6 +955,34 @@ function delEnl(idx){
   D.sorties.splice(idx,1);sv();rf();rfEnlTable(window._eflt||'all');tst('Supprime');
 }
 
+
+
+function delAppro(idx){
+  if(!confirm('Annuler cet approvisionnement ?'))return;
+  D.appros.splice(idx,1);
+  sv();rf();tst('Entree annulee');
+}
+
+
+function calcEnlTotal(){
+  var q=parseFloat(document.getElementById('en-q').value)||0;
+  var pu=parseFloat(document.getElementById('en-pu').value)||0;
+  var tag=document.getElementById('en-auto-tag');
+  if(q>0&&pu>0){
+    document.getElementById('en-m').value=q*pu;
+    if(tag)tag.style.display='block';
+    updEnlPrev();
+  } else {
+    if(tag)tag.style.display='none';
+  }
+}
+function calcEditEnlTotal(){
+  var q=parseFloat(document.getElementById('edit-enl-q').value)||0;
+  var pu=parseFloat(document.getElementById('edit-enl-pu').value)||0;
+  if(q>0&&pu>0){
+    document.getElementById('edit-enl-m').value=q*pu;
+  }
+}
 
 // ===== EDIT APPRO =====
 function openEditAppro(idx){
