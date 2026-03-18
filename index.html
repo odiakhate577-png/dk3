@@ -366,28 +366,59 @@ tr:last-child td{border-bottom:none}
 
 <div class="ov" id="m-enl"><div class="modal">
   <div class="mhd"></div>
-  <div class="mth"><div class="mtx">Enlevement + Facturation</div><button class="mcl" onclick="cm('m-enl')">X</button></div>
+  <div class="mth"><div class="mtx">Enlevement</div><button class="mcl" onclick="cm('m-enl')">X</button></div>
   <input type="hidden" id="en-cid" value="">
+
+  <!-- CLIENT -->
   <div class="fg" id="en-c-wrap">
     <label class="fl">Client</label>
     <div id="en-c-name" style="display:none;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;font-size:14px;font-weight:600;color:var(--tx)"></div>
     <select class="fsel" id="en-c" onchange="window._enlCid=null;updEnlSol();"></select>
   </div>
-  <div id="en-sol" style="font-size:12px;padding:7px 10px;background:rgba(245,166,35,.08);border-radius:6px;margin-bottom:10px;color:var(--ac)"></div>
-  <div class="fg"><label class="fl">Type de farine</label><select class="fsel" id="en-f" onchange="updEnlStk()"><option value="FIRST CHOICE">FARINE FIRST CHOICE</option><option value="TERANGA">FARINE TERANGA</option><option value="PATISSIERE">FARINE PATISSIERE</option><option value="BEIGNET">FARINE BEIGNET</option></select></div>
-  <div id="en-si" style="font-size:11px;color:var(--ac);margin-bottom:10px;padding:5px 10px;background:rgba(245,166,35,.06);border-radius:6px"></div>
-  <div class="g2"><div class="fg"><label class="fl">Nombre de sacs</label><input type="number" class="fi" id="en-q" min="1" placeholder="10" inputmode="numeric" oninput="calcEnlTotal()"></div><div class="fg"><label class="fl">Prix unitaire/sac (F CFA)</label><input type="number" class="fi" id="en-pu" min="0" placeholder="17000" inputmode="numeric" oninput="calcEnlTotal()"></div></div>
+  <div id="en-sol" style="font-size:11px;padding:6px 10px;background:rgba(245,166,35,.08);border-radius:6px;margin-bottom:12px;color:var(--ac)"></div>
+
+  <!-- FARINES MULTI-SELECT -->
   <div class="fg">
-    <label class="fl">Montant total (F CFA)</label>
-    <div style="position:relative">
-      <input type="number" class="fi" id="en-m" min="0" placeholder="Calcul auto ou saisie manuelle" inputmode="numeric" oninput="updEnlPrev()" style="padding-right:90px">
-      <span id="en-auto-tag" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--ac3);display:none">AUTO</span>
+    <label class="fl">Farines selectionnees</label>
+    <div id="enl-farine-btns" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <button type="button" id="enl-btn-FC" onclick="toggleFarine('FIRST CHOICE')"
+        style="padding:10px 8px;border-radius:10px;border:2px solid var(--bd);background:var(--s2);color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center">
+        <div style="font-size:16px">&#127756;</div>FIRST CHOICE
+        <div id="enl-stk-FC" style="font-size:9px;color:var(--tx3)"></div>
+      </button>
+      <button type="button" id="enl-btn-TR" onclick="toggleFarine('TERANGA')"
+        style="padding:10px 8px;border-radius:10px;border:2px solid var(--bd);background:var(--s2);color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center">
+        <div style="font-size:16px">&#127756;</div>TERANGA
+        <div id="enl-stk-TR" style="font-size:9px;color:var(--tx3)"></div>
+      </button>
+      <button type="button" id="enl-btn-PA" onclick="toggleFarine('PATISSIERE')"
+        style="padding:10px 8px;border-radius:10px;border:2px solid var(--bd);background:var(--s2);color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center">
+        <div style="font-size:16px">&#127880;</div>PATISSIERE
+        <div id="enl-stk-PA" style="font-size:9px;color:var(--tx3)"></div>
+      </button>
+      <button type="button" id="enl-btn-BE" onclick="toggleFarine('BEIGNET')"
+        style="padding:10px 8px;border-radius:10px;border:2px solid var(--bd);background:var(--s2);color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center">
+        <div style="font-size:16px">&#127849;</div>BEIGNET
+        <div id="enl-stk-BE" style="font-size:9px;color:var(--tx3)"></div>
+      </button>
     </div>
   </div>
+
+  <!-- LIGNES PAR FARINE SELECTIONNEE -->
+  <div id="enl-lignes"></div>
+
+  <!-- TOTAL + SOLDE PREVIEW -->
+  <div id="enl-total-row" style="display:none;background:var(--s2);border-radius:10px;padding:10px 14px;margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:11px;color:var(--tx2)">Total montant</span>
+      <span id="enl-total-mont" style="font-family:monospace;font-weight:700;color:var(--ac3);font-size:14px">0 F</span>
+    </div>
+    <div id="en-pv" style="font-size:11px;color:var(--tx2);text-align:center"></div>
+  </div>
+
   <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="en-d"></div>
-  <div class="fg"><label class="fl">Note</label><input type="text" class="fi" id="en-n" placeholder="Remarque..."></div>
-  <div id="en-pv" style="font-size:13px;font-weight:600;padding:10px;background:var(--s2);border-radius:8px;margin-bottom:12px;text-align:center"></div>
-  <button class="btn bp" style="width:100%;margin-top:4px" onclick="svEnl()">Enregistrer</button>
+  <div class="fg"><label class="fl">Note (optionnel)</label><input type="text" class="fi" id="en-n" placeholder="Remarque..."></div>
+  <button class="btn bp" style="width:100%;margin-top:8px" onclick="svEnl()">Enregistrer</button>
 </div></div>
 
 <div class="ov" id="m-fiche"><div class="modal">
@@ -915,7 +946,7 @@ function svDep(){var m=parseFloat(document.getElementById('dp-m').value)||0;if(!
 function svVir(){var m=parseFloat(document.getElementById('vr-m').value)||0;if(!m){tst('Montant requis','w');return;}D.virements.push({montant:m,date:document.getElementById('vr-d').value||td(),note:document.getElementById('vr-n').value});sv();cm('m-vir');['vr-m','vr-n'].forEach(function(id){document.getElementById(id).value='';});tst('Virement enregistre');rf();}
 function svNcli(){var n=document.getElementById('nc-n').value.trim();if(!n){tst('Nom requis','w');return;}if(D.clients.find(function(c){return c.nom.toLowerCase()===n.toLowerCase();})){tst('Client existe deja','w');return;}var id='c_'+Date.now();D.clients.push({id:id,nom:n,tel:document.getElementById('nc-t').value.trim(),soldeInitial:parseFloat(document.getElementById('nc-s').value)||0,limiteCredit:parseFloat(document.getElementById('nc-l').value)||0,categorie:document.getElementById('nc-cat').value||'boulangerie',note:document.getElementById('nc-x').value.trim(),dateCreation:td()});sv();cm('m-ncli');['nc-n','nc-t','nc-x'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('nc-s').value='0';document.getElementById('nc-l').value='0';tst('Client ajoute');rf();}
 function svVer(){var cid=window._verCid||document.getElementById('vr-c').value;var m=parseFloat(document.getElementById('vr-mt').value)||0;if(!cid||!m){tst('Client et montant requis','w');return;}D.vers_cli.push({clientId:cid,montant:m,note:document.getElementById('vr-nt').value,date:document.getElementById('vr-dt').value||td()});sv();cm('m-ver');document.getElementById('vr-mt').value='';document.getElementById('vr-nt').value='';window._verCid=null;tst('Versement enregistre');rf();}
-function svEnl(){var cid=window._enlCid||document.getElementById('en-c').value;var f=document.getElementById('en-f').value;var q=parseInt(document.getElementById('en-q').value)||0;var m=parseFloat(document.getElementById('en-m').value)||0;var dt=document.getElementById('en-d').value||td();if(!q){tst('Quantite requise','w');return;}if(!m){tst('Montant facture requis','w');return;}/* stock check removed — enlèvement autorisé même si stock bas */var cli=D.clients.find(function(c){return c.id===cid;});D.sorties.push({farine:f,qty:q,montant:m,clientId:cid,client:cli?cli.nom:'',date:dt,note:document.getElementById('en-n').value});sv();cm('m-enl');['en-q','en-m','en-n','en-pu'].forEach(function(id){document.getElementById(id).value='';});window._enlCid=null;tst('Enlevement enregistre');rf();}
+
 
 // DELETE
 function delD(i){if(!confirm('Supprimer?'))return;D.depenses.splice(i,1);sv();rf();tst('Supprime');}
@@ -934,9 +965,9 @@ function delCli(cid){if(!confirm('Supprimer ce client et son historique?'))retur
 function updStk(){var f=document.getElementById('s-f').value;var el=document.getElementById('s-si');if(el)el.textContent='Stock disponible: '+gStk(f)+' sacs';}
 function updSeuil(k,v){D.seuils[k]=parseInt(v)||0;sv();}
 function updVerPrev(){var cid=window._verCid||document.getElementById('vr-c').value;var m=parseFloat(document.getElementById('vr-mt').value)||0;var sol=gSol(cid);var el=document.getElementById('vr-cur');var el2=document.getElementById('vr-pv');if(el)el.textContent='Solde actuel: '+fmtF(sol)+(sol>0?' (debiteur)':' (solde)');if(el2&&m>0){var a=sol-m;el2.textContent='Solde apres: '+fmtF(Math.abs(a))+(a>0?' — reste a payer':a<0?' — credit client':' — compte solde');el2.style.color=a<=0?'var(--ac3)':'var(--ac4)';}else if(el2){el2.textContent='';}}
-function updEnlSol(){var cid=window._enlCid||document.getElementById('en-c').value;var sol=gSol(cid);var el=document.getElementById('en-sol');if(el)el.textContent='Solde actuel: '+fmtF(sol)+(sol>0?' (debiteur)':' (solde)');updEnlPrev();}
-function updEnlStk(){var f=document.getElementById('en-f').value;var el=document.getElementById('en-si');if(el)el.textContent='Stock disponible: '+gStk(f)+' sacs';}
-function updEnlPrev(){var cid=window._enlCid||document.getElementById('en-c').value;var m=parseFloat(document.getElementById('en-m').value)||0;var sol=gSol(cid);var c=D.clients.find(function(x){return x.id===cid;});var lim=c?c.limiteCredit||0:0;var el=document.getElementById('en-pv');if(el&&m>0){var a=sol+m;var msg='Solde apres: '+fmtF(Math.abs(a))+(a>0?' — doit payer':a<0?' — credit':' — solde');if(lim>0&&a>lim)msg+=' (limite '+fmtF(lim)+' depassee)';el.textContent=msg;el.style.color=a>0?'var(--ac4)':'var(--ac3)';}else if(el){el.textContent='';}}
+
+
+
 function omVer(cid){
   window._verCid=cid;
   fillCliSel('vr-c',cid);
@@ -952,21 +983,7 @@ function omVer(cid){
   document.getElementById('vr-dt').value=td();
   om('m-ver');
 }
-function omEnl(cid){
-  window._enlCid=cid;
-  fillCliSel('en-c',cid);
-  var sel=document.getElementById('en-c');
-  var nameDiv=document.getElementById('en-c-name');
-  var cli=D.clients.find(function(x){return x.id===cid;});
-  if(cli&&nameDiv&&sel){
-    nameDiv.textContent=cli.nom;
-    nameDiv.style.display='block';
-    sel.style.display='none';
-  }
-  updEnlSol();updEnlStk();
-  document.getElementById('en-d').value=td();
-  om('m-enl');
-}
+
 
 // TABS
 function stab(t,btn){['liste','client','farine'].forEach(function(x){document.getElementById('st-'+x).style.display='none';});document.getElementById('st-'+t).style.display='block';document.querySelectorAll('#pg-sort .tb').forEach(function(b){b.classList.remove('act');});btn.classList.add('act');if(t==='client'){rfCli();}if(t==='farine'){rfFar();}}
@@ -1065,25 +1082,8 @@ function delAppro(idx){
 }
 
 
-function calcEnlTotal(){
-  var q=parseFloat(document.getElementById('en-q').value)||0;
-  var pu=parseFloat(document.getElementById('en-pu').value)||0;
-  var tag=document.getElementById('en-auto-tag');
-  if(q>0&&pu>0){
-    document.getElementById('en-m').value=q*pu;
-    if(tag)tag.style.display='block';
-    updEnlPrev();
-  } else {
-    if(tag)tag.style.display='none';
-  }
-}
-function calcEditEnlTotal(){
-  var q=parseFloat(document.getElementById('edit-enl-q').value)||0;
-  var pu=parseFloat(document.getElementById('edit-enl-pu').value)||0;
-  if(q>0&&pu>0){
-    document.getElementById('edit-enl-m').value=q*pu;
-  }
-}
+
+
 
 
 // ===== EDIT VERSEMENT =====
@@ -1176,6 +1176,194 @@ function svEditDep(){
     date:document.getElementById('ed-d').value||td()
   };
   sv();cm('m-edit-dep');tst('Depense modifiee');rf();
+}
+
+
+// ===== MULTI-FARINE ENLEVEMENT =====
+var _enlSelected = {}; // {farine: {qty, pu, total}}
+var FARINE_KEYS = {
+  'FIRST CHOICE': 'FC',
+  'TERANGA': 'TR',
+  'PATISSIERE': 'PA',
+  'BEIGNET': 'BE'
+};
+var FARINE_COLORS = {
+  'FIRST CHOICE': 'var(--fc)',
+  'TERANGA': 'var(--ft)',
+  'PATISSIERE': 'var(--fp)',
+  'BEIGNET': 'var(--fb)'
+};
+
+function toggleFarine(farine){
+  var key = FARINE_KEYS[farine];
+  var btn = document.getElementById('enl-btn-'+key);
+  if(_enlSelected[farine]){
+    // Deselect
+    delete _enlSelected[farine];
+    if(btn){
+      btn.style.border = '2px solid var(--bd)';
+      btn.style.background = 'var(--s2)';
+      btn.style.color = 'var(--tx2)';
+    }
+  } else {
+    // Select
+    _enlSelected[farine] = {qty:'', pu:'', total:''};
+    if(btn){
+      var col = FARINE_COLORS[farine];
+      btn.style.border = '2px solid '+col;
+      btn.style.background = 'rgba(255,255,255,0.04)';
+      btn.style.color = col;
+    }
+  }
+  renderEnlLignes();
+  calcEnlGrandTotal();
+}
+
+function renderEnlLignes(){
+  var el = document.getElementById('enl-lignes');
+  if(!el) return;
+  var farines = Object.keys(_enlSelected);
+  if(!farines.length){
+    el.innerHTML = '';
+    var tr = document.getElementById('enl-total-row');
+    if(tr) tr.style.display = 'none';
+    return;
+  }
+  var tr = document.getElementById('enl-total-row');
+  if(tr) tr.style.display = 'block';
+
+  el.innerHTML = farines.map(function(f){
+    var key = FARINE_KEYS[f];
+    var col = FARINE_COLORS[f];
+    var stk = gStk(f);
+    var d = _enlSelected[f];
+    return '<div style="background:var(--s2);border:1px solid var(--bd);border-left:3px solid '+col+';border-radius:10px;padding:12px;margin-bottom:10px">'
+      +'<div style="font-size:11px;font-weight:700;color:'+col+';margin-bottom:8px">'+f+' <span style="font-size:9px;color:var(--tx3)">(stock: '+stk+' sacs)</span></div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+      +'<div><label style="font-size:9px;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Nb sacs</label>'
+      +'<input type="number" min="1" placeholder="0" inputmode="numeric" value="'+(d.qty||'')+'"'
+      +' style="width:100%;background:var(--s3);border:1px solid var(--bd);border-radius:6px;padding:8px;color:var(--tx);font-size:13px"'
+      +' oninput="_enlSelected[''+f+''].qty=this.value;calcEnlGrandTotal()" id="enl-q-'+key+'"></div>'
+      +'<div><label style="font-size:9px;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Prix/sac (F)</label>'
+      +'<input type="number" min="0" placeholder="0" inputmode="numeric" value="'+(d.pu||'')+'"'
+      +' style="width:100%;background:var(--s3);border:1px solid var(--bd);border-radius:6px;padding:8px;color:var(--tx);font-size:13px"'
+      +' oninput="_enlSelected[''+f+''].pu=this.value;calcEnlGrandTotal()" id="enl-pu-'+key+'"></div>'
+      +'</div>'
+      +'<div style="text-align:right;margin-top:6px;font-size:12px;color:'+col+';font-family:monospace;font-weight:600" id="enl-sub-'+key+'">'
+      +(d.qty&&d.pu?fmtF(parseFloat(d.qty)*parseFloat(d.pu)):'—')
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function calcEnlGrandTotal(){
+  var total = 0;
+  Object.keys(_enlSelected).forEach(function(f){
+    var d = _enlSelected[f];
+    var q = parseFloat(d.qty)||0;
+    var pu = parseFloat(d.pu)||0;
+    var sub = q*pu;
+    _enlSelected[f].total = sub;
+    var key = FARINE_KEYS[f];
+    var subEl = document.getElementById('enl-sub-'+key);
+    if(subEl) subEl.textContent = (q&&pu)?fmtF(sub):'—';
+    total += sub;
+  });
+  var totEl = document.getElementById('enl-total-mont');
+  if(totEl) totEl.textContent = fmtF(total);
+  // Update solde preview
+  var cid = window._enlCid||document.getElementById('en-cid').value||document.getElementById('en-c').value;
+  var sol = gSol(cid);
+  var pvEl = document.getElementById('en-pv');
+  if(pvEl && total > 0){
+    var apres = sol + total;
+    pvEl.textContent = 'Solde apres: '+fmtF(Math.abs(apres))+(apres>0?' — doit payer':apres<0?' — credit':' — solde');
+    pvEl.style.color = apres>0?'var(--ac4)':'var(--ac3)';
+  } else if(pvEl){
+    pvEl.textContent = '';
+  }
+}
+
+function updEnlSol(){
+  var cid = window._enlCid||document.getElementById('en-cid').value||document.getElementById('en-c').value;
+  var sol = gSol(cid);
+  var el = document.getElementById('en-sol');
+  if(el) el.textContent = 'Solde actuel: '+fmtF(sol)+(sol>0?' (debiteur)':' (solde)');
+  calcEnlGrandTotal();
+}
+
+function omEnl(cid){
+  window._enlCid = cid;
+  _enlSelected = {};
+  // Reset all farine buttons
+  Object.keys(FARINE_KEYS).forEach(function(f){
+    var key = FARINE_KEYS[f];
+    var btn = document.getElementById('enl-btn-'+key);
+    if(btn){
+      btn.style.border = '2px solid var(--bd)';
+      btn.style.background = 'var(--s2)';
+      btn.style.color = 'var(--tx2)';
+    }
+    // Update stock display
+    var stkEl = document.getElementById('enl-stk-'+key);
+    if(stkEl) stkEl.textContent = 'Stock: '+gStk(f)+' sacs';
+  });
+  renderEnlLignes();
+
+  // Client display
+  fillCliSel('en-c', cid);
+  var sel = document.getElementById('en-c');
+  var nameDiv = document.getElementById('en-c-name');
+  var hiddenCid = document.getElementById('en-cid');
+  var cli = D.clients.find(function(x){ return x.id === cid; });
+  if(cli && nameDiv && sel){
+    nameDiv.textContent = cli.nom;
+    nameDiv.style.display = 'block';
+    sel.style.display = 'none';
+  }
+  if(hiddenCid) hiddenCid.value = cid;
+  updEnlSol();
+  document.getElementById('en-d').value = td();
+  om('m-enl');
+}
+
+function svEnl(){
+  var cid = window._enlCid||document.getElementById('en-cid').value||document.getElementById('en-c').value;
+  if(!cid){ tst('Client requis','w'); return; }
+  var farines = Object.keys(_enlSelected);
+  if(!farines.length){ tst('Selectionnez au moins une farine','w'); return; }
+  var date = document.getElementById('en-d').value||td();
+  var note = document.getElementById('en-n').value;
+  var cli = D.clients.find(function(c){ return c.id===cid; });
+  var errors = [];
+  farines.forEach(function(f){
+    var d = _enlSelected[f];
+    var q = parseInt(d.qty)||0;
+    if(!q){ errors.push(f+': quantite manquante'); }
+  });
+  if(errors.length){ tst(errors[0],'w'); return; }
+  // Save one sortie per farine
+  farines.forEach(function(f){
+    var d = _enlSelected[f];
+    var q = parseInt(d.qty)||0;
+    var total = parseFloat(d.total)||0;
+    D.sorties.push({
+      farine: f,
+      qty: q,
+      montant: total,
+      clientId: cid,
+      client: cli?cli.nom:'',
+      date: date,
+      note: note
+    });
+  });
+  sv();
+  cm('m-enl');
+  window._enlCid = null;
+  _enlSelected = {};
+  document.getElementById('en-n').value = '';
+  tst('Enlevement enregistre ('+farines.length+' farine'+(farines.length>1?'s':'')+')');
+  rf();
 }
 
 // TOAST
