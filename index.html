@@ -141,7 +141,7 @@ tr:last-child td{border-bottom:none}
     <button class="chip" onclick="flt('appro','PATISSIERE',this)">Patissiere</button>
     <button class="chip" onclick="flt('appro','BEIGNET',this)">Beignet</button>
   </div>
-  <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Farine</th><th>Sacs</th><th>Prix/sac</th><th>Total</th><th>Fourn.</th></tr></thead><tbody id="tb-appro"></tbody></table></div></div>
+  <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Farine</th><th>Sacs</th><th>Prix/sac</th><th>Total</th><th>Fourn.</th><th></th></tr></thead><tbody id="tb-appro"></tbody></table></div></div>
 </div>
 
 <!-- SORTIES -->
@@ -398,6 +398,68 @@ tr:last-child td{border-bottom:none}
   </div>
 </div></div>
 
+
+<!-- EDIT APPRO -->
+<div class="ov" id="m-edit-appro"><div class="modal">
+  <div class="mhd"></div>
+  <div class="mth"><div class="mtx">Modifier l approvisionnement</div><button class="mcl" onclick="cm('m-edit-appro')">X</button></div>
+  <input type="hidden" id="ea-idx">
+  <div class="fg"><label class="fl">Type de farine</label>
+    <select class="fsel" id="ea-f">
+      <option value="FIRST CHOICE">FARINE FIRST CHOICE</option>
+      <option value="TERANGA">FARINE TERANGA</option>
+      <option value="PATISSIERE">FARINE PATISSIERE</option>
+      <option value="BEIGNET">FARINE BEIGNET</option>
+    </select>
+  </div>
+  <div class="g2">
+    <div class="fg"><label class="fl">Nombre de sacs</label><input type="number" class="fi" id="ea-q" min="1" inputmode="numeric"></div>
+    <div class="fg"><label class="fl">Prix/sac (F CFA)</label><input type="number" class="fi" id="ea-p" min="0" inputmode="numeric"></div>
+  </div>
+  <div class="fg"><label class="fl">Fournisseur</label><input type="text" class="fi" id="ea-4" placeholder="Nom du fournisseur"></div>
+  <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="ea-d"></div>
+  <div class="fg"><label class="fl">Note</label><input type="text" class="fi" id="ea-n" placeholder="Remarque..."></div>
+  <button class="btn bp" style="width:100%;margin-top:8px" onclick="svEditAppro()">Enregistrer les modifications</button>
+</div></div>
+
+<!-- EDIT VIREMENT -->
+<div class="ov" id="m-edit-vir"><div class="modal">
+  <div class="mhd"></div>
+  <div class="mth"><div class="mtx">Modifier le virement</div><button class="mcl" onclick="cm('m-edit-vir')">X</button></div>
+  <input type="hidden" id="ev-idx">
+  <div class="fg"><label class="fl">Montant (F CFA)</label><input type="number" class="fi" id="ev-m" min="0" inputmode="numeric"></div>
+  <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="ev-d"></div>
+  <div class="fg"><label class="fl">Note</label><input type="text" class="fi" id="ev-n" placeholder="ex: Virement mars 2025..."></div>
+  <button class="btn bp" style="width:100%;margin-top:8px" onclick="svEditVir()">Enregistrer les modifications</button>
+</div></div>
+
+<!-- EDIT DEPENSE -->
+<div class="ov" id="m-edit-dep"><div class="modal">
+  <div class="mhd"></div>
+  <div class="mth"><div class="mtx">Modifier la depense</div><button class="mcl" onclick="cm('m-edit-dep')">X</button></div>
+  <input type="hidden" id="ed-idx">
+  <div class="fg"><label class="fl">Categorie</label>
+    <select class="fsel" id="ed-c">
+      <option value="CHARGEMENT">Chargement</option>
+      <option value="DECHARGEMENT">Dechargement</option>
+      <option value="TRANSPORT">Transport</option>
+      <option value="MAIRIE">Mairie</option>
+      <option value="WOYOFAL">Woyofal</option>
+      <option value="GARDIENNAGE">Gardiennage</option>
+      <option value="NETTOYAGE">Nettoyage</option>
+      <option value="REPAS">Repas ADV/Commercial</option>
+      <option value="ELECTRICITE">Electricite</option>
+      <option value="AUTRE">Autre charge</option>
+    </select>
+  </div>
+  <div class="g2">
+    <div class="fg"><label class="fl">Montant (F CFA)</label><input type="number" class="fi" id="ed-m" min="0" inputmode="numeric"></div>
+    <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="ed-d"></div>
+  </div>
+  <div class="fg"><label class="fl">Description</label><input type="text" class="fi" id="ed-x" placeholder="Detail..."></div>
+  <button class="btn bp" style="width:100%;margin-top:8px" onclick="svEditDep()">Enregistrer les modifications</button>
+</div></div>
+
 <script>
 var FARINES=[
   {key:'FIRST CHOICE',label:'FARINE FIRST CHOICE',color:'var(--fc)',bdg:'fcb'},
@@ -517,16 +579,16 @@ function rf(){
 }
 
 // APPRO TABLE
-function rfAppro(f){window._aflt=f;var el=document.getElementById('tb-appro');if(!el)return;var rows=D.appros.filter(function(a){return f==='all'||a.farine===f;}).sort(function(a,b){return b.date.localeCompare(a.date);});el.innerHTML=rows.length?rows.map(function(a){return '<tr><td style="font-size:10px;font-family:monospace">'+fmtD(a.date)+'</td><td><span class="bdg '+bdg(a.farine)+' bdg">'+a.farine+'</span></td><td style="font-weight:600">'+a.qty+'</td><td style="font-size:10px">'+( a.prix?fmtF(a.prix):'—')+'</td><td style="color:var(--ac3);font-size:10px">'+( a.prix?fmtF(a.qty*a.prix):'—')+'</td><td style="color:var(--tx2);font-size:10px">'+(a.fournisseur||'—')+'</td></tr>';}).join(''):'<tr><td colspan="6" class="emp">Aucun approvisionnement</td></tr>';}
+function rfAppro(f){window._aflt=f;var el=document.getElementById('tb-appro');if(!el)return;var rows=D.appros.filter(function(a){return f==='all'||a.farine===f;}).sort(function(a,b){return b.date.localeCompare(a.date);});el.innerHTML=rows.length?rows.map(function(a){var ri=D.appros.indexOf(a);return '<tr><td style="font-size:10px;font-family:monospace">'+fmtD(a.date)+'</td><td><span class="bdg '+bdg(a.farine)+' bdg">'+a.farine+'</span></td><td style="font-weight:600">'+a.qty+'</td><td style="font-size:10px">'+( a.prix?fmtF(a.prix):'—')+'</td><td style="color:var(--ac3);font-size:10px">'+( a.prix?fmtF(a.qty*a.prix):'—')+'</td><td style="color:var(--tx2);font-size:10px">'+(a.fournisseur||'—')+'</td><td><button class="btn bi bsm" onclick="openEditAppro('+ri+')">Modifier</button></td></tr>';}).join(''):'<tr><td colspan="7" class="emp">Aucun approvisionnement</td></tr>';}
 
 // SORT TABLE
 function rfSort(f){window._sflt=f;var el=document.getElementById('tb-sort');if(!el)return;var rows=D.sorties.filter(function(a){return f==='all'||a.farine===f;}).sort(function(a,b){return b.date.localeCompare(a.date);});el.innerHTML=rows.length?rows.map(function(a){return '<tr><td style="font-size:10px;font-family:monospace">'+fmtD(a.date)+'</td><td><span class="bdg '+bdg(a.farine)+' bdg">'+a.farine+'</span></td><td style="color:var(--ac4);font-weight:600">'+a.qty+'</td><td style="font-size:11px">'+(a.client||'—')+'</td><td style="font-size:10px;color:var(--ac3)">'+(a.montant?fmtF(a.montant):'—')+'</td></tr>';}).join(''):'<tr><td colspan="5" class="emp">Aucune sortie</td></tr>';}
 
 // DEP TABLE
-function rfDep(f){window._dflt=f;var el=document.getElementById('tb-dep');if(!el)return;var rows=D.depenses.filter(function(d){return f==='all'||d.cat===f;}).sort(function(a,b){return b.date.localeCompare(a.date);});el.innerHTML=rows.length?rows.map(function(d,i){return '<tr><td style="font-size:10px;font-family:monospace">'+fmtD(d.date)+'</td><td style="color:'+CATCOL[d.cat]+';font-size:10px;font-weight:600">'+CATIC[d.cat]+'</td><td style="color:var(--ac4);font-family:monospace;font-size:11px">'+fmtF(d.montant)+'</td><td style="color:var(--tx2);font-size:10px">'+(d.desc||'—')+'</td><td><button class="btn bd2 bsm" onclick="delD('+i+')">X</button></td></tr>';}).join(''):'<tr><td colspan="5" class="emp">Aucune depense</td></tr>';}
+function rfDep(f){window._dflt=f;var el=document.getElementById('tb-dep');if(!el)return;var rows=D.depenses.filter(function(d){return f==='all'||d.cat===f;}).sort(function(a,b){return b.date.localeCompare(a.date);});el.innerHTML=rows.length?rows.map(function(d,i){var ri=D.depenses.indexOf(d);return '<tr><td style="font-size:10px;font-family:monospace">'+fmtD(d.date)+'</td><td style="color:'+CATCOL[d.cat]+';font-size:10px;font-weight:600">'+CATIC[d.cat]+'</td><td style="color:var(--ac4);font-family:monospace;font-size:11px">'+fmtF(d.montant)+'</td><td style="color:var(--tx2);font-size:10px">'+(d.desc||'—')+'</td><td style="display:flex;gap:4px"><button class="btn bi bsm" onclick="openEditDep('+ri+')">Modifier</button><button class="btn bd2 bsm" onclick="delD('+ri+')">X</button></td></tr>';}).join(''):'<tr><td colspan="5" class="emp">Aucune depense</td></tr>';}
 
 // VIR TABLE
-function rfVir(){var el=document.getElementById('tb-vir');if(!el)return;var rows=[].concat(D.virements).sort(function(a,b){return b.date.localeCompare(a.date);});el.innerHTML=rows.length?rows.map(function(v,i){return '<tr><td style="font-size:10px;font-family:monospace">'+fmtD(v.date)+'</td><td style="font-family:monospace;color:var(--ac2);font-weight:600">'+fmtF(v.montant)+'</td><td style="color:var(--tx2);font-size:10px">'+(v.note||'—')+'</td><td><button class="btn bd2 bsm" onclick="delV('+i+')">X</button></td></tr>';}).join(''):'<tr><td colspan="4" class="emp">Aucun virement</td></tr>';}
+function rfVir(){var el=document.getElementById('tb-vir');if(!el)return;var rows=[].concat(D.virements).sort(function(a,b){return b.date.localeCompare(a.date);});el.innerHTML=rows.length?rows.map(function(v,i){var ri=D.virements.indexOf(v);return '<tr><td style="font-size:10px;font-family:monospace">'+fmtD(v.date)+'</td><td style="font-family:monospace;color:var(--ac2);font-weight:600">'+fmtF(v.montant)+'</td><td style="color:var(--tx2);font-size:10px">'+(v.note||'—')+'</td><td style="display:flex;gap:4px"><button class="btn bi bsm" onclick="openEditVir('+ri+')">Modifier</button><button class="btn bd2 bsm" onclick="delV('+ri+')">X</button></td></tr>';}).join(''):'<tr><td colspan="4" class="emp">Aucun virement</td></tr>';}
 
 // APERCU DEP
 function rfAp(){
@@ -874,6 +936,78 @@ function svEditEnl(){
 function delEnl(idx){
   if(!confirm('Supprimer cet enlevement?'))return;
   D.sorties.splice(idx,1);sv();rf();rfEnlTable(window._eflt||'all');tst('Supprime');
+}
+
+
+// ===== EDIT APPRO =====
+function openEditAppro(idx){
+  var a=D.appros[idx];if(!a)return;
+  document.getElementById('ea-idx').value=idx;
+  document.getElementById('ea-f').value=a.farine;
+  document.getElementById('ea-q').value=a.qty;
+  document.getElementById('ea-p').value=a.prix||'';
+  document.getElementById('ea-4').value=a.fournisseur||'';
+  document.getElementById('ea-d').value=a.date;
+  document.getElementById('ea-n').value=a.note||'';
+  om('m-edit-appro');
+}
+function svEditAppro(){
+  var idx=parseInt(document.getElementById('ea-idx').value);
+  var q=parseInt(document.getElementById('ea-q').value)||0;
+  if(!q){tst('Quantite requise','w');return;}
+  D.appros[idx]={
+    farine:document.getElementById('ea-f').value,
+    qty:q,
+    prix:parseFloat(document.getElementById('ea-p').value)||0,
+    fournisseur:document.getElementById('ea-4').value,
+    date:document.getElementById('ea-d').value||td(),
+    note:document.getElementById('ea-n').value
+  };
+  sv();cm('m-edit-appro');tst('Approvisionnement modifie');rf();
+}
+
+// ===== EDIT VIREMENT =====
+function openEditVir(idx){
+  var v=D.virements[idx];if(!v)return;
+  document.getElementById('ev-idx').value=idx;
+  document.getElementById('ev-m').value=v.montant;
+  document.getElementById('ev-d').value=v.date;
+  document.getElementById('ev-n').value=v.note||'';
+  om('m-edit-vir');
+}
+function svEditVir(){
+  var idx=parseInt(document.getElementById('ev-idx').value);
+  var m=parseFloat(document.getElementById('ev-m').value)||0;
+  if(!m){tst('Montant requis','w');return;}
+  D.virements[idx]={
+    montant:m,
+    date:document.getElementById('ev-d').value||td(),
+    note:document.getElementById('ev-n').value
+  };
+  sv();cm('m-edit-vir');tst('Virement modifie');rf();
+}
+
+// ===== EDIT DEPENSE =====
+function openEditDep(idx){
+  var d=D.depenses[idx];if(!d)return;
+  document.getElementById('ed-idx').value=idx;
+  document.getElementById('ed-c').value=d.cat;
+  document.getElementById('ed-m').value=d.montant;
+  document.getElementById('ed-d').value=d.date;
+  document.getElementById('ed-x').value=d.desc||'';
+  om('m-edit-dep');
+}
+function svEditDep(){
+  var idx=parseInt(document.getElementById('ed-idx').value);
+  var m=parseFloat(document.getElementById('ed-m').value)||0;
+  if(!m){tst('Montant requis','w');return;}
+  D.depenses[idx]={
+    cat:document.getElementById('ed-c').value,
+    montant:m,
+    desc:document.getElementById('ed-x').value,
+    date:document.getElementById('ed-d').value||td()
+  };
+  sv();cm('m-edit-dep');tst('Depense modifiee');rf();
 }
 
 // TOAST
