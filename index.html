@@ -246,8 +246,8 @@ tr:last-child td{border-bottom:none}
     </div>
     <div class="fscr">
       <button class="chip act" onclick="fltC('all',this)">Tous</button>
-      <button class="chip" onclick="fltC('boulangerie',this)">Boulangerie</button>
-      <button class="chip" onclick="fltC('patisserie',this)">Patisserie/Beignet</button>
+      <button class="chip" onclick="fltC('boulangerie',this)">&#x1F35E; Boulangerie</button>
+      <button class="chip" onclick="fltC('patisserie',this)">&#x1F370; Patisserie/Beignet</button>
       <button class="chip" onclick="fltC('deb',this)">Debiteurs</button>
       <button class="chip" onclick="fltC('ok',this)">Soldes</button>
     </div>
@@ -336,11 +336,13 @@ tr:last-child td{border-bottom:none}
   <div class="fg"><label class="fl">Telephone (optionnel)</label><input type="tel" class="fi" id="nc-t" placeholder="77 000 00 00" inputmode="tel"></div>
   <div class="fg"><label class="fl">Solde initial (F CFA)</label><input type="number" class="fi" id="nc-s" placeholder="0" inputmode="numeric" value="0"></div>
   <div class="fg"><label class="fl">Limite de credit (F CFA)</label><input type="number" class="fi" id="nc-l" placeholder="0" inputmode="numeric" value="0"></div>
-  <div class="fg"><label class="fl">Categorie de farine</label>
+  <div class="fg">
+    <label class="fl">Categorie prevue (avant premier achat)</label>
     <select class="fsel" id="nc-cat">
       <option value="boulangerie">Boulangerie (First Choice, Teranga)</option>
       <option value="patisserie">Patisserie / Beignet (Patissiere, Beignet)</option>
     </select>
+    <div style="font-size:10px;color:var(--tx2);margin-top:4px">Se met a jour automatiquement apres le premier achat</div>
   </div>
   <div class="fg"><label class="fl">Note</label><input type="text" class="fi" id="nc-x" placeholder="Remarque..."></div>
   <button class="btn bp" style="width:100%;margin-top:4px" onclick="svNcli()">Enregistrer</button>
@@ -394,7 +396,7 @@ tr:last-child td{border-bottom:none}
   <div id="fiche-body"></div>
   <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
     <button class="btn bs" style="flex:1" onclick="printFiche()">Imprimer</button>
-    <button class="btn bi bsm" id="btn-chg-cat">Changer categorie</button>
+
     <button class="btn bd2 bsm" id="btn-del-cli">Supprimer</button>
   </div>
 </div></div>
@@ -534,6 +536,22 @@ function cm2(){var n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1
 function fmtD(d){if(!d)return'—';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
 function fmtF(v){return Number(v).toLocaleString('fr-FR')+' F';}
 function gStk(k){return D.appros.filter(function(a){return a.farine===k;}).reduce(function(s,a){return s+a.qty;},0)-D.sorties.filter(function(a){return a.farine===k;}).reduce(function(s,a){return s+a.qty;},0);}
+
+function getClientCat(cid){
+  var enls=D.sorties.filter(function(s){return s.clientId===cid;});
+  var hasBoul=enls.some(function(s){return s.farine==='FIRST CHOICE'||s.farine==='TERANGA';});
+  var hasPat=enls.some(function(s){return s.farine==='PATISSIERE'||s.farine==='BEIGNET';});
+  if(hasBoul&&hasPat)return 'les deux';
+  if(hasBoul)return 'boulangerie';
+  if(hasPat)return 'patisserie';
+  // No purchases yet — fall back to manual category if set
+  return c_manualCat(cid)||'non defini';
+}
+function c_manualCat(cid){
+  var c=D.clients.find(function(x){return x.id===cid;});
+  return c?c.categorie||'':'';
+}
+
 function gSol(cid){var c=D.clients.find(function(x){return x.id===cid;});if(!c)return 0;return(c.soldeInitial||0)+D.sorties.filter(function(s){return s.clientId===cid;}).reduce(function(s,r){return s+(r.montant||0);},0)-D.vers_cli.filter(function(v){return v.clientId===cid;}).reduce(function(s,v){return s+v.montant;},0);}
 function bdg(key){var f=FARINES.find(function(x){return x.key===key;});return f?f.bdg:'';}
 
@@ -669,8 +687,14 @@ function rfCliList(f){
   var clis=[].concat(D.clients);
   if(f==='deb')clis=clis.filter(function(c){return gSol(c.id)>0;});
   if(f==='ok')clis=clis.filter(function(c){return gSol(c.id)<=0;});
-  if(f==='boulangerie')clis=clis.filter(function(c){return (c.categorie||'boulangerie')==='boulangerie';});
-  if(f==='patisserie')clis=clis.filter(function(c){return c.categorie==='patisserie';});
+  if(f==='boulangerie')clis=clis.filter(function(c){
+    var cat=getClientCat(c.id);
+    return cat==='boulangerie'||cat==='les deux';
+  });
+  if(f==='patisserie')clis=clis.filter(function(c){
+    var cat=getClientCat(c.id);
+    return cat==='patisserie'||cat==='les deux';
+  });
   var srch=document.getElementById('cli-search');
   if(srch&&srch.value.trim()){
     var q=srch.value.trim().toLowerCase();
@@ -750,13 +774,7 @@ function openFiche(cid){
   var lim=c.limiteCredit||0;var dep=lim>0&&sol>lim;
   document.getElementById('fiche-tit').textContent='Fiche: '+c.nom;
   document.getElementById('btn-del-cli').setAttribute('onclick','delCli("'+cid+'")');
-  var catBtn=document.getElementById('btn-chg-cat');
-  if(catBtn){
-    var newCat=c.categorie==='patisserie'?'boulangerie':'patisserie';
-    var newLabel=c.categorie==='patisserie'?'Passer en Boulangerie':'Passer en Patisserie';
-    catBtn.textContent=newLabel;
-    catBtn.setAttribute('onclick','chgCat("'+cid+'","'+newCat+'")');
-  }
+
   var h='<div style="background:'+(deb?'rgba(229,115,115,.1)':'rgba(129,199,132,.1)')+';border-radius:10px;padding:12px;margin-bottom:14px;text-align:center">'
     +'<div style="font-size:11px;color:var(--tx2);margin-bottom:4px">SOLDE ACTUEL</div>'
     +'<div style="font-size:28px;font-weight:700;font-family:monospace;color:'+(deb?'var(--ac4)':'var(--ac3)')+'">'+fmtF(Math.abs(sol))+'</div>'
@@ -764,7 +782,11 @@ function openFiche(cid){
     +(dep?'<div style="font-size:11px;color:var(--ac4);margin-top:4px">LIMITE DE CREDIT DEPASSEE!</div>':'')
     +(lim>0?'<div style="font-size:10px;color:var(--tx2);margin-top:4px">Limite: '+fmtF(lim)+'</div>':'')
     +'</div>';
-  if(c.tel)h+='<div style="font-size:12px;color:var(--tx2);margin-bottom:10px">Tel: '+c.tel+'</div>';
+  if(c.tel)h+='<div style="font-size:12px;color:var(--tx2);margin-bottom:6px">Tel: '+c.tel+'</div>';
+  var cat=getClientCat(cid);
+  var catColor=cat==='patisserie'?'var(--fp)':cat==='les deux'?'var(--ac)':'var(--ft)';
+  var catLabel=cat==='patisserie'?'Patisserie / Beignet':cat==='les deux'?'Boulangerie + Patisserie':cat==='boulangerie'?'Boulangerie':'Non defini';
+  h+='<div style="font-size:11px;padding:4px 10px;border-radius:8px;display:inline-block;background:rgba(255,255,255,.06);color:'+catColor+';margin-bottom:10px;border:1px solid '+catColor+'">Categorie : '+catLabel+' (auto)</div>';
   h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">'
     +'<div style="background:var(--s2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--tx2)">INIT</div><div style="font-family:monospace;font-size:13px;font-weight:600">'+fmtF(c.soldeInitial||0)+'</div></div>'
     +'<div style="background:var(--s2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--ac4)">ENLEVEMENTS</div><div style="font-family:monospace;font-size:13px;font-weight:600;color:var(--ac4)">'+fmtF(totE)+'</div></div>'
